@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Home Page</h1>
+
+    {% if user.is_authenticated %}
+        <p>You are logged in as: {{ user.username }}</p>
+        <a href="{% url 'account_logout' %}" class="btn">Logout</a>
+        <p><a href="{% url 'admin:index' %}" class="btn">Go to Admin Panel</a></p>
+        <p><a href="{% url 'user_list' %}" class="btn">Manage Users</a></p>
+    {% else %}
+        <p>You are not logged in.</p>
+        <a href="{% url 'account_login' %}" class="btn">Login</a>
+    {% endif %}
+</body>
+</html>
