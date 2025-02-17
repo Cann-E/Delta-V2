@@ -20,7 +20,7 @@ source venv/bin/activate  # Mac/Linux
 # 3. Install What You Need
 pip install -r requirements.txt
 
-# 4. Add a `.env` File
+# 4. Add a `.env` File ALREADY INCLUDED
 echo "SECRET_KEY=your-secret-key
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
