@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
+from django.contrib.auth import authenticate, login
 
 def is_admin(user):
     return user.is_staff or user.is_superuser
@@ -25,3 +26,15 @@ def user_list_view(request):
 @login_required
 def home_view(request):
     return render(request, 'home.html', {'user': request.user})
+
+
+def oauth2_callback(request):
+    code = request.GET.get('code')
+    # Handle the OAuth2 callback, authenticate the user, etc.
+    user = authenticate(request, code=code)
+    if user is not None:
+        login(request, user)
+        return redirect("microsoft_callback")
+    else:
+        # Handle authentication failure
+        return redirect("microsoft_callback")
