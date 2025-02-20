@@ -3,7 +3,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env
+dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv()
+
+# Check if MICROSOFT_REDIRECT_URI is loaded
+print("MICROSOFT_REDIRECT_URI:", os.getenv("MICROSOFT_REDIRECT_URI"))  # Debugging
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,6 +16,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-fallback-secret-key')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -19,13 +24,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
 ]
-
+SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -97,6 +103,11 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': os.getenv('MICROSOFT_SECRET'),
             'key': '',
         },
-        "AUTH_PARAMS": {"scope": "openid email profile"},
+        "AUTH_PARAMS": {
+            "scope": "openid email profile",
+        },
+        "OAUTH_PKCE_ENABLED": True,  # Ensures better security
     }
 }
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
