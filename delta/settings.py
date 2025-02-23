@@ -61,11 +61,11 @@ WSGI_APPLICATION = 'delta.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'NAME': 'softwareengine',
+        'USER': 'postgres',
+        'PASSWORD': 'B!rds19671967',
+        'HOST': 'localhost',  # or your database host
+        'PORT': '5432',       # default PostgreSQL port
     }
 }
 

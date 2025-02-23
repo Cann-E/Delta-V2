@@ -25,3 +25,15 @@ def user_list_view(request):
 @login_required
 def home_view(request):
     return render(request, 'home.html', {'user': request.user})
+
+def role_based_redirect(request):
+    user = request.user
+
+    if user.role == 'admin':
+        return redirect('admin_dashboard')  # Change to the actual URL name
+    elif user.role == 'developer':
+        return redirect('developer_dashboard')
+    elif user.role == 'editor':
+        return redirect('editor_dashboard')
+    else:
+        return redirect('basic_dashboard')
