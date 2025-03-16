@@ -5,6 +5,7 @@ from .views import admin_dashboard_view
 from .views import developer_dashboard_view
 from .views import editor_dashboard_view
 from .views import basic_dashboard_view
+from .views import submit_request, request_list
 
 urlpatterns = [
     path('', home_view, name='home'),
@@ -16,4 +17,6 @@ urlpatterns = [
     path('users/', user_list_view, name='user_list'),  # View users
     path('delete_user/<int:user_id>/', delete_user_view, name='delete_user'),
     path('accounts/', include('allauth.urls')),
+    path('submit/', submit_request, name='submit_request'),
+    path('list/', request_list, name='request_list'),
 ]

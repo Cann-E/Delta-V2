@@ -12,19 +12,27 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-fallback-secret-key')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
+
 INSTALLED_APPS = [
+    'delta',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django.contrib.sites',  # This must come before allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
+
 ]
+
+# Add this if not already present
+SITE_ID = 1
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -39,6 +47,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'delta.urls'
+
+AUTH_USER_MODEL = 'delta.CustomUser'
 
 TEMPLATES = [
     {
@@ -77,6 +87,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+AUTHENTICATION_BACKENDS = (
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
