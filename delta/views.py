@@ -30,10 +30,19 @@ def role_based_redirect(request):
     user = request.user
 
     if user.role == 'admin':
-        return redirect('admin_dashboard')  # Change to the actual URL name
+        return redirect('admin_dashboard.html')  # Change to the actual URL name
     elif user.role == 'developer':
-        return redirect('developer_dashboard')
+        return redirect('developer_dashboard.html')
     elif user.role == 'editor':
-        return redirect('editor_dashboard')
+        return redirect('editor_dashboard.html')
     else:
-        return redirect('basic_dashboard')
+        return redirect('basic_dashboard.html')
+
+def admin_dashboard_view(request):
+    return render(request, 'admin_dashboard.html')
+def developer_dashboard_view(request):
+    return render(request, 'developer_dashboard.html')
+def editor_dashboard_view(request):
+    return render(request, 'editor_dashboard.html')
+def basic_dashboard_view(request):
+    return render(request, 'basic_dashboard.html')
