@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.conf import settings
+from django.conf.urls.static import static
 
 # Load environment variables from .env
 load_dotenv()
@@ -19,12 +21,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
+    'delta',
 ]
+
+SITE_ID = 1
+
+AUTH_USER_MODEL = 'delta.CustomUser'
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # This tells Django where to find static files
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -61,13 +75,14 @@ WSGI_APPLICATION = 'delta.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'NAME': 'Delta',  
+        'USER': 'postgres', 
+        'PASSWORD': 'password', 
+        'HOST': 'localhost',  
+        'PORT': '5432',  
     }
 }
+
 
 # Authentication
 AUTH_PASSWORD_VALIDATORS = [
@@ -100,3 +115,10 @@ SOCIALACCOUNT_PROVIDERS = {
         "AUTH_PARAMS": {"scope": "openid email profile"},
     }
 }
+
+# Media settings (if you want to handle user-uploaded files/signatures)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# A temporary directory for LaTeX compilation output
+TEMP_PDF_DIR = os.path.join(BASE_DIR, 'temp_pdf')

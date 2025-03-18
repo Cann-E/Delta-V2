@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
@@ -30,6 +31,8 @@ class CustomUserAdmin(UserAdmin):
         queryset.delete()
 
     delete_users.short_description = "Delete selected users"
+    
+
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
