@@ -2,6 +2,7 @@ import os
 import subprocess
 import shutil  # For finding pdflatex automatically
 from django.conf import settings
+import logging
 
 def generate_pdf_for_request(request):
     """Generate a PDF for a change request (major or address)."""
@@ -21,11 +22,12 @@ def generate_pdf_for_request(request):
     temp_tex_path = os.path.join(output_dir, f'{request.request_type}_request_{request.id}.tex')
     output_pdf_path = os.path.join(output_dir, f'{request.request_type}_request_{request.id}.pdf')
 
-    # 🔹 Determine Signature Path
+        # 🔹 Determine Signature Path
     if request.user.signature and os.path.exists(request.user.signature.path):
-        signature_path = request.user.signature.path
+        signature_path = os.path.abspath(request.user.signature.path)
     else:
-        signature_path = os.path.join(settings.MEDIA_ROOT, 'signatures', 'default_signature.png')
+        signature_path = os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'signatures', 'default_signature.png'))
+
 
     # 🔹 Debugging Info
     print(f"🔍 Using LaTeX Template: {TEX_FILE_PATH}")
@@ -46,27 +48,32 @@ def generate_pdf_for_request(request):
     except Exception as e:
         print(f"❌ ERROR: Failed to read LaTeX template: {e}")
         return None
+    
+    logger = logging.getLogger(__name__)
+    logger.debug(f"User Info: First Name: {request.user.first_name}, Last Name: {request.user.last_name}, UH ID: {getattr(request.user, 'uh_id', 'Not set')}")
+    logger.debug(f"Email: {request.user.email}, Request Type: {request.request_type}")
 
     # 🔹 Replace placeholders safely
     placeholders = {
-        "FIRST_NAME": getattr(request.user, "first_name", "John"),
-        "LAST_NAME": getattr(request.user, "last_name", "Doe"),
-        "UH_ID": "000000",
-        "EMAIL": getattr(request.user, "email", "email@example.com"),
-        "PHONE_NUMBER": "123-456-7890",
-        "MAILING_ADDRESS": "123 University St.",
-        "DATE_SUBMITTED": request.date_created.strftime('%m/%d/%Y'),
-        "REQUEST_TYPE": request.request_type.replace("_", " ").title(),
-        "CURRENT_MAJOR": getattr(request, "current_major", "Undeclared"),
-        "NEW_MAJOR": getattr(request, "new_major", ""),
-        "OLD_ADDRESS": getattr(request, "old_address", ""),
-        "NEW_ADDRESS": getattr(request, "new_address", ""),
-        "EXPLANATION": getattr(request, "explanation", ""),
-        "SIGNATURE_PATH": signature_path,  # This should be a full path
-    }
+    "FIRST_NAME": getattr(request.user, "first_name", "John").strip(),
+    "LAST_NAME": getattr(request.user, "last_name", "Doe").strip(),
+    "UH_ID": getattr(request.user, "uh_id", "000000"),  # Ensure this attribute exists or has a default
+    "EMAIL": getattr(request.user, "email", "email@example.com").strip(),
+    "PHONE_NUMBER": getattr(request.user, "phone_number", "123-456-7890").strip(),  # Assuming there's a phone_number field
+    "MAILING_ADDRESS": getattr(request.user, "mailing_address", "123 University St.").strip(),  # Assuming there's a mailing_address field
+    "DATE_SUBMITTED": request.date_created.strftime('%m/%d/%Y') if request.date_created else "Date Not Provided",
+    "REQUEST_TYPE": request.request_type.replace("_", " ").title(),
+    "CURRENT_MAJOR": (getattr(request, "current_major", "Undeclared") or "Undeclared").strip(),
+    "NEW_MAJOR": (getattr(request, "new_major", "Not Provided") or "Not Provided").strip(),
+    "OLD_ADDRESS": (getattr(request, "old_address", "Not Provided") or "Not Provided").strip(),
+    "NEW_ADDRESS": (getattr(request, "new_address", "Not Provided") or "Not Provided").strip(),
+    "EXPLANATION": (getattr(request, "explanation", "Not Provided") or "Not Provided").strip(),
+
+    "SIGNATURE_PATH": signature_path.replace("\\", "/"),    }
 
     for key, value in placeholders.items():
-        template = template.replace(key, str(value))
+        template = template.replace(key, str(value))  # ✅ Ensure replacements happen
+
 
     # 🔹 Write the modified `.tex` file
     try:
