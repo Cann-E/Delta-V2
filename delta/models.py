@@ -35,7 +35,7 @@ class CustomUser(AbstractUser):
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='basicuser')
     status = models.BooleanField(default=True)
-
+    uh_id = models.CharField(max_length=10, blank=True, null=True)  
     # NEW: Signature field for users
     signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
 
@@ -74,5 +74,15 @@ class Request(models.Model):
     date_created = models.DateField(auto_now_add=True)
     pdf_file = models.FileField(upload_to='generated_pdfs/', blank=True, null=True)
 
+
+    def save(self, *args, **kwargs):
+        """ Auto-fill first_name and last_name from user session before saving """
+        if not self.first_name:
+            self.first_name = self.user.first_name
+        if not self.last_name:
+            self.last_name = self.user.last_name
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - {self.request_type} ({self.status})"
+
