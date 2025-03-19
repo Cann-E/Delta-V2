@@ -47,7 +47,14 @@ def generate_pdf_for_request(request):
             template = file.read()
     except Exception as e:
         print(f"❌ ERROR: Failed to read LaTeX template: {e}")
-        return None
+        template = None  # Ensure template is defined
+
+    if not template:
+        print("❌ ERROR: Template is empty or not loaded.")
+        return None  # Exit the function safely
+
+    print("📜 Processed LaTeX Content:\n", template)  # ✅ Now it is safe to print
+
     
     logger = logging.getLogger(__name__)
     logger.debug(f"User Info: First Name: {request.user.first_name}, Last Name: {request.user.last_name}, UH ID: {getattr(request.user, 'uh_id', 'Not set')}")
@@ -55,25 +62,24 @@ def generate_pdf_for_request(request):
 
     # 🔹 Replace placeholders safely
     placeholders = {
-    "FIRST_NAME": getattr(request.user, "first_name", "John").strip(),
-    "LAST_NAME": getattr(request.user, "last_name", "Doe").strip(),
-    "UH_ID": getattr(request.user, "uh_id", "000000"),  # Ensure this attribute exists or has a default
-    "EMAIL": getattr(request.user, "email", "email@example.com").strip(),
-    "PHONE_NUMBER": getattr(request.user, "phone_number", "123-456-7890").strip(),  # Assuming there's a phone_number field
-    "MAILING_ADDRESS": getattr(request.user, "mailing_address", "123 University St.").strip(),  # Assuming there's a mailing_address field
+    "FIRST_NAME": str(getattr(request.user, "first_name", "Not Provided") or "Not Provided").strip(),
+    "LAST_NAME": str(getattr(request.user, "last_name", "Not Provided") or "Not Provided").strip(),
+    "UH_ID": str(getattr(request.user, "uh_id", "000000") or "000000").strip(),
+    "EMAIL": str(getattr(request.user, "email", "email@example.com") or "email@example.com").strip(),
+    "PHONE_NUMBER": str(getattr(request.user, "phone_number", "123-456-7890") or "123-456-7890").strip(),
+    "MAILING_ADDRESS": str(getattr(request.user, "mailing_address", "123 University St.") or "123 University St.").strip(),
     "DATE_SUBMITTED": request.date_created.strftime('%m/%d/%Y') if request.date_created else "Date Not Provided",
     "REQUEST_TYPE": request.request_type.replace("_", " ").title(),
-    "CURRENT_MAJOR": (getattr(request, "current_major", "Undeclared") or "Undeclared").strip(),
-    "NEW_MAJOR": (getattr(request, "new_major", "Not Provided") or "Not Provided").strip(),
-    "OLD_ADDRESS": (getattr(request, "old_address", "Not Provided") or "Not Provided").strip(),
-    "NEW_ADDRESS": (getattr(request, "new_address", "Not Provided") or "Not Provided").strip(),
-    "EXPLANATION": (getattr(request, "explanation", "Not Provided") or "Not Provided").strip(),
+    "CURRENT_MAJOR": str(getattr(request, "current_major", "Undeclared") or "Undeclared").strip(),
+    "NEW_MAJOR": str(getattr(request, "new_major", "Not Provided") or "Not Provided").strip(),
+    "OLD_ADDRESS": str(getattr(request, "old_address", "Not Provided") or "Not Provided").strip(),
+    "NEW_ADDRESS": str(getattr(request, "new_address", "Not Provided") or "Not Provided").strip(),
+    "EXPLANATION": str(getattr(request, "explanation", "Not Provided") or "Not Provided").strip(),
 
     "SIGNATURE_PATH": signature_path.replace("\\", "/"),    }
 
     for key, value in placeholders.items():
-        template = template.replace(key, str(value))  # ✅ Ensure replacements happen
-
+        template = template.replace(key, str(value))  # ✅ Ensure all placeholders are replaced
 
     # 🔹 Write the modified `.tex` file
     try:
