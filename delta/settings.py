@@ -15,6 +15,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 INSTALLED_APPS = [
     'delta',
+    'custom_auth',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -27,10 +28,12 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
 
+
 ]
 
 # Add this if not already present
 SITE_ID = 1
+
 
 
 
@@ -48,7 +51,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'delta.urls'
 
-AUTH_USER_MODEL = 'delta.CustomUser'
+AUTH_USER_MODEL = 'custom_auth.CustomUser'
 
 TEMPLATES = [
     {
@@ -91,7 +94,7 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = "/custom_auth/login/"
 LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 

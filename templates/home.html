@@ -1,5 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const userId = 123; // Replace with actual user ID (e.g., from a template variable)
+    fetch(`/check_user_status/${userId}/`)
+        .then(response => response.json())
+        .then(data => console.log("User Status:", data))
+        .catch(error => console.error("Error fetching user status:", error));
+});
+</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

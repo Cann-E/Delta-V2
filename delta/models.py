@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
     # Add related_name parameters to these fields
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='custom_user_set',
+        related_name='delta_customuser_set',
         blank=True,
         verbose_name='groups',
         help_text='The groups this user belongs to.',
@@ -31,7 +31,7 @@ class CustomUser(AbstractUser):
 
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='custom_user_set',
+        related_name='delta_customuser_permissions',
         blank=True,
         verbose_name='user permissions',
         help_text='Specific permissions for this user.',

@@ -4,11 +4,17 @@ from django.http import HttpResponse
 from django import forms
 from django.shortcuts import render, redirect
 from .models import AcademicRequest, CustomUser
+from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+
+
 
 class AcademicRequestForm(forms.ModelForm):
     class Meta:
         model = AcademicRequest
         fields = ['form_name', 'signature', 'document']
+
 
 def submit_request(request):
     if request.method == 'POST':
@@ -48,27 +54,24 @@ def user_list_view(request):
 @login_required
 def home_view(request):
     return render(request, 'home.html', {'user': request.user})
-@login_required
-def role_based_redirect(request):
-    user = request.user
 
-    if user.role == 'admin':
-        return redirect('admin_dashboard')  # Change to the actual URL name
-    elif user.role == 'developer':
-        return redirect('developer_dashboard')
-    elif user.role == 'editor':
-        return redirect('editor_dashboard')
-    else:
-        return redirect('basic_dashboard')
 @login_required
-def admin_dashboard_view(request):
-    return render(request, 'admin_dashboard.html')
-@login_required
-def developer_dashboard_view(request):
-    return render(request, 'developer_dashboard.html')
-@login_required
-def editor_dashboard_view(request):
-    return render(request, 'editor_dashboard.html')
-@login_required
+def deactivate_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    if user.is_active:
+        user.is_active = False  # Deactivate user
+        user.save()
+        print(f"❌ User {user.username} has been deactivated.")
+
+    return redirect('user_list')
+
+def check_user_status(request):
+    if request.user.is_authenticated and not request.user.is_active:
+        logout(request)  # Force logout if deactivated
+        return redirect('login')
+
+
+
 def basic_dashboard_view(request):
-    return render(request, 'basic_dashboard.html')
+    return render(request, 'dashboard.html')

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Dashboard</title>
+
+    <!-- Load CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Reusable Header -->
+    {% include 'header.html' %}
+
+    <main class="dashboard-container">
+        {% block content %}
+        <div class="welcome-section">
+            <h1>Welcome to Delta</h1>
+            <p>This is a secure user dashboard with authentication and approval tracking.</p>
+            <p>You are logged in as <strong>{{ user.username }}</strong></p>
+
+            <div class="action-buttons">
+                <a href="{% url 'account_logout' %}" class="btn logout-btn">Logout</a>
+                <a href="{% url 'upload_signature' %}" class="btn save-btn">Upload Signature</a>
+            </div>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- Reusable Footer -->
+    {% include 'footer.html' %}
+</body>
+</html>
