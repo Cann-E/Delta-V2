@@ -42,6 +42,8 @@ class CustomUser(AbstractUser):
         ('basicuser', 'Basic User'),
         ('admin', 'Administrator'),
     )
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='basicuser')
     status = models.BooleanField(default=True)
     uh_id = models.CharField(max_length=10, blank=True, null=True)

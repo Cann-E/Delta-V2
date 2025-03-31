@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from delta.forms import CustomUserCreationForm
 
 
 def login_page(request):
@@ -31,8 +32,21 @@ def logout_page(request):
 
 
 def register_page(request):
-    # Implement registration logic
-    return render(request, "register.html")
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+
+        if form.is_valid():
+            # Save the user and redirect to a success page
+            form.save()
+            messages.success(request, "Your account has been created successfully.")
+            return redirect('login')  # Redirect to login page after successful registration
+        else:
+            messages.error(request, "There was an error with your registration.")
+
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'register.html', {'form': form})
 
 
 @login_required  # This decorator ensures only logged in users can access

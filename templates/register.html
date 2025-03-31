@@ -29,10 +29,11 @@
         <h2>Register</h2>
         <form method="post">
             {% csrf_token %}
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="email" name="email" placeholder="Email" required>
-            <input type="password" name="password1" placeholder="Password" required>
-            <input type="password" name="password2" placeholder="Confirm Password" required>
+
+            <!-- Render the form fields here -->
+            {{ form.as_p }}  <!-- This will render each form field as a <p> tag with labels and inputs -->
+
+            <!-- Submit button -->
             <button type="submit">Register</button>
         </form>
         <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
