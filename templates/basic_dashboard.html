@@ -6,11 +6,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delta Dashboard</title>
 
-    <!-- Load CSS -->
+    <!-- External & Static Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            background-color: #f4f6fc;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #222;
+        }
+
+        .dashboard-container {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-section {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            color: #1a237e;
+        }
+
+        .welcome-section p {
+            font-size: 1.05rem;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            background-color: #1a73e8;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background-color: #155cc4;
+        }
+
+        .logout-btn i {
+            color: #fff;
+        }
+
+        .save-btn i {
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
+
     <!-- Reusable Header -->
     {% include 'header.html' %}
 
@@ -22,8 +91,12 @@
             <p>You are logged in as <strong>{{ user.username }}</strong></p>
 
             <div class="action-buttons">
-                <a href="{% url 'account_logout' %}" class="btn logout-btn">Logout</a>
-                <a href="{% url 'upload_signature' %}" class="btn save-btn">Upload Signature</a>
+                <a href="{% url 'account_logout' %}" class="btn logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+                <a href="{% url 'upload_signature' %}" class="btn save-btn">
+                    <i class="fas fa-pen-nib"></i> Upload Signature
+                </a>
             </div>
         </div>
         {% endblock %}

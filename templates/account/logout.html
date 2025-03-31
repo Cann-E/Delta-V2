@@ -1,0 +1,190 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Out - Delta V2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .logout-container {
+            background: #ffffff;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+            max-width: 540px;
+            width: 100%;
+        }
+
+        /* Menu Wrapper */
+        .menu-wrapper {
+            background-color: #f0f0f3;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .menu-box {
+            background-color: #ffffff;
+            padding: 14px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #1a73e8;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .menu-box:hover {
+            background-color: #e6ecf8;
+        }
+
+        /* Header */
+        .logout-icon {
+            font-size: 2rem;
+            color: #e53935;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #e53935;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .warning-text {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #444;
+            margin-bottom: 24px;
+        }
+
+        /* Checklist */
+        .checklist {
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .checklist li {
+            list-style: none;
+            margin-bottom: 10px;
+        }
+
+        .checklist input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        /* Buttons */
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .btn-danger {
+            background-color: #e53935;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-danger:hover {
+            background-color: #c62828;
+        }
+
+        .btn-secondary {
+            background-color: #f1f1f1;
+            color: #333;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        form {
+            margin: 0;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+
+        <!-- Menu -->
+        <div class="menu-wrapper">
+            <div class="menu">
+                <a href="{% url 'account_email' %}" class="menu-box">
+                    <i class="fas fa-envelope"></i> Change Email
+                </a>
+                <a href="{% url 'account_change_password' %}" class="menu-box">
+                    <i class="fas fa-lock"></i> Change Password
+                </a>
+                <a href="{% url 'socialaccount_connections' %}" class="menu-box">
+                    <i class="fas fa-link"></i> Account Connections
+                </a>
+                <a href="{% url 'account_logout' %}" class="menu-box">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </a>
+            </div>
+        </div>
+
+        <!-- Header + Message -->
+        <div class="logout-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2>Are you sure you want to sign out?</h2>
+        <p class="warning-text">This will end your session and log you out of Delta V2.</p>
+
+        <!-- Checklist -->
+        <ul class="checklist">
+            <li><input type="checkbox" disabled> Any unsaved work will be lost</li>
+            <li><input type="checkbox" disabled> You’ll need to reauthenticate to return</li>
+            <li><input type="checkbox" disabled> Active forms or drafts may not be saved</li>
+        </ul>
+
+        <!-- Buttons -->
+        <div class="actions">
+            <a href="/" class="btn-secondary">Cancel</a>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Yes, Sign Me Out</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

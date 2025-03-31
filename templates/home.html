@@ -3,41 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Delta V2 - Home</title>
     <style>
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #222;
         }
 
-        .btn:hover {
-            background-color: #45a049;
+        .header {
+            text-align: center;
+            padding: 60px 20px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            padding: 40px 60px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .card img {
+            height: 48px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card a {
+            text-decoration: none;
+            color: #007c89;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to the Home Page</h1>
-
     {% if user.is_authenticated %}
-        <p>You are logged in as: {{ user.username }}</p>
-        <a href="{% url 'account_logout' %}" class="btn">Logout</a>
-        <p><a href="{% url 'admin:index' %}" class="btn">Go to Admin Panel</a></p>
-        <p><a href="{% url 'user_list' %}" class="btn">Manage Users</a></p>
-        <p><a href="{% url 'upload_signature' %}" class="btn">Upload Signature</a></p>
-        <p><a href="{% url 'submit_request' %}" class="btn">Create New Request</a></p>
-        <p><a href="{% url 'view_requests' %}" class="btn">View My Requests</a></p>
+    <div class="header">
+        <h1>Welcome to Delta V2</h1>
+        <p>You are logged in as: <strong>{{ user.username }}</strong></p>
+    </div>
 
+    <div class="grid">
+        <div class="card">
+            <img src="https://img.icons8.com/ios/50/admin-settings-male.png" alt="Admin">
+            <h3>Admin Panel</h3>
+            <p>Access Django’s built-in admin dashboard.</p>
+            <a href="{% url 'admin:index' %}">Go to Admin</a>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/ios-filled/50/user-group-man-man.png" alt="Users">
+            <h3>Manage Users</h3>
+            <p>View and manage platform users.</p>
+            <a href="{% url 'user_list' %}">Manage</a>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/ios/50/pen.png" alt="Signature">
+            <h3>Upload Signature</h3>
+            <p>Add or update your digital signature.</p>
+            <a href="{% url 'upload_signature' %}">Upload</a>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/ios/50/edit.png" alt="New Request">
+            <h3>Create New Request</h3>
+            <p>Submit a new form or request for approval.</p>
+            <a href="{% url 'submit_request' %}">Create</a>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/ios/50/view-file.png" alt="Requests">
+            <h3>View My Requests</h3>
+            <p>Track your past and pending requests.</p>
+            <a href="{% url 'view_requests' %}">View</a>
+        </div>
+
+        <!-- ✅ Approve Requests card added properly -->
+        <div class="card">
+            <img src="https://img.icons8.com/ios-filled/50/checkmark--v1.png" alt="Approve Requests">
+            <h3>Approve Requests</h3>
+            <p>Review and approve pending requests submitted by users.</p>
+            <a href="{% url 'pending_requests' %}">Approve</a>
+        </div>
+        <div class="card">
+            <img src="https://img.icons8.com/ios/50/logout-rounded.png" alt="Logout">
+            <h3>Logout</h3>
+            <p>Sign out of your account securely.</p>
+            <a href="{% url 'account_logout' %}">Sign out</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; {{ now|date:"Y" }} Delta V2 • All rights reserved.
+    </div>
 
     {% else %}
+    <div class="header">
+        <h1>Welcome to Delta V2</h1>
         <p>You are not logged in.</p>
-        <a href="{% url 'account_login' %}" class="btn">Login</a>
+        <a href="{% url 'account_login' %}">Login</a>
+    </div>
     {% endif %}
 </body>
 </html>

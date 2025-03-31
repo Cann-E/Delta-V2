@@ -1,0 +1,165 @@
+{% load i18n %}
+{% load allauth account %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login to Delta</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #1a237e;
+        }
+
+        form label {
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        input[type="text"],
+input[type="password"] {
+    width: 95%;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+}
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #155cc4;
+        }
+
+        .or-separator {
+            text-align: center;
+            margin: 24px 0;
+            color: #888;
+            position: relative;
+        }
+
+        .or-separator::before,
+        .or-separator::after {
+            content: "";
+            height: 1px;
+            background: #ccc;
+            width: 40%;
+            position: absolute;
+            top: 50%;
+        }
+
+        .or-separator::before {
+            left: 0;
+        }
+
+        .or-separator::after {
+            right: 0;
+        }
+
+        .microsoft-login {
+            text-align: center;
+        }
+
+        .microsoft-login a {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2F2F2F;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .microsoft-login a:hover {
+            background-color: #1e1e1e;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Login to Delta</h2>
+        </div>
+
+        {% if not SOCIALACCOUNT_ONLY %}
+        {% url 'account_login' as login_url %}
+        <form method="post" action="{{ login_url }}">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="form-group">
+                <label for="id_login">{% trans "Username or Email" %}</label>
+                {{ form.login }}
+            </div>
+            <div class="form-group">
+                <label for="id_password">{% trans "Password" %}</label>
+                {{ form.password }}
+            </div>
+            {{ redirect_field }}
+            <button class="btn-primary" type="submit">{% trans "Sign In" %}</button>
+        </form>
+        {% endif %}
+
+        <div class="or-separator">or</div>
+
+        {% if SOCIALACCOUNT_ENABLED %}
+        <div class="microsoft-login">
+            <a href="{% provider_login_url 'microsoft' %}">
+                Sign in with Microsoft
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="footer-text">
+            <a href="{% url 'account_signup' %}">Sign up</a> | 
+            <a href="{% url 'account_reset_password' %}">Forgot password?</a>
+        </div>
+    </div>
+</body>
+</html>
