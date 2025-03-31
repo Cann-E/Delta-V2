@@ -75,13 +75,14 @@ WSGI_APPLICATION = 'delta.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Delta',  
-        'USER': 'postgres', 
-        'PASSWORD': 'password', 
-        'HOST': 'localhost',  
-        'PORT': '5432',  
+        'NAME': os.getenv('DATABASE_NAME', 'delta_db'),
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', ''),
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 # Authentication
@@ -113,10 +114,11 @@ SOCIALACCOUNT_PROVIDERS = {
             'key': '',
         },
         "AUTH_PARAMS": {"scope": "openid email profile"},
+        "TENANT": '170bbabd-a2f0-4c90-ad4b-0e8f0f0c4259',  
     }
 }
 
-# Media settings (if you want to handle user-uploaded files/signatures)
+# Media settings 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
