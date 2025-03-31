@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('custom_auth', '0001_initial'),
+        ('auth', '0012_alter_user_first_name_max_length'),
     ]
 
     operations = [
@@ -31,10 +31,11 @@ class Migration(migrations.Migration):
                 ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
                 ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
                 ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('role', models.CharField(choices=[('basicuser', 'Basic User'), ('admin', 'Administrator'), ('developer', 'Developer'), ('editor', 'Editor')], default='basicuser', max_length=20)),
+                ('role', models.CharField(choices=[('basicuser', 'Basic User'), ('admin', 'Administrator')], default='basicuser', max_length=20)),
                 ('status', models.BooleanField(default=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to.', related_name='custom_user_set', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='custom_user_set', to='auth.permission', verbose_name='user permissions')),
+                ('signature', models.ImageField(blank=True, null=True, upload_to='signatures/')),
+                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to.', related_name='customuser_set', related_query_name='customuser', to='auth.group', verbose_name='groups')),
+                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='customuser_set', related_query_name='customuser', to='auth.permission', verbose_name='user permissions')),
             ],
             options={
                 'verbose_name': 'user',
@@ -46,15 +47,19 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='AcademicRequest',
+            name='Request',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('form_name', models.CharField(max_length=100)),
-                ('submission_date', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('pending', 'Pending'), ('returned', 'Returned'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='draft', max_length=10)),
-                ('signature', models.ImageField(blank=True, null=True, upload_to='signatures/')),
-                ('document', models.FileField(blank=True, null=True, upload_to='documents/')),
-                ('requestor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('request_type', models.CharField(choices=[('change_major', 'Change of Major'), ('change_address', 'Change of Address')], max_length=20)),
+                ('status', models.CharField(choices=[('draft', 'Draft'), ('pending', 'Pending'), ('returned', 'Returned'), ('approved', 'Approved')], default='draft', max_length=20)),
+                ('date_created', models.DateTimeField(auto_now_add=True)),
+                ('date_updated', models.DateTimeField(auto_now=True)),
+                ('current_major', models.CharField(blank=True, max_length=100, null=True)),
+                ('new_major', models.CharField(blank=True, max_length=100, null=True)),
+                ('old_address', models.CharField(blank=True, max_length=255, null=True)),
+                ('new_address', models.CharField(blank=True, max_length=255, null=True)),
+                ('pdf_file', models.FileField(blank=True, null=True, upload_to='pdfs/')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='requests', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

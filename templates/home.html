@@ -1,26 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const userId = 123; // Replace with actual user ID (e.g., from a template variable)
-    fetch(`/check_user_status/${userId}/`)
-        .then(response => response.json())
-        .then(data => console.log("User Status:", data))
-        .catch(error => console.error("Error fetching user status:", error));
-});
-</script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <style>
         .btn {
+            display: inline-block;
             padding: 10px 20px;
             margin: 5px;
             background-color: #4CAF50;
             color: white;
             text-decoration: none;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
         }
 
         .btn:hover {
@@ -36,6 +30,11 @@ document.addEventListener("DOMContentLoaded", function() {
         <a href="{% url 'account_logout' %}" class="btn">Logout</a>
         <p><a href="{% url 'admin:index' %}" class="btn">Go to Admin Panel</a></p>
         <p><a href="{% url 'user_list' %}" class="btn">Manage Users</a></p>
+        <p><a href="{% url 'upload_signature' %}" class="btn">Upload Signature</a></p>
+        <p><a href="{% url 'submit_request' %}" class="btn">Create New Request</a></p>
+        <p><a href="{% url 'view_requests' %}" class="btn">View My Requests</a></p>
+
+
     {% else %}
         <p>You are not logged in.</p>
         <a href="{% url 'account_login' %}" class="btn">Login</a>
