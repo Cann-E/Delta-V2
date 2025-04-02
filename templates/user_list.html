@@ -45,16 +45,32 @@
             background-color: #f0f4ff;
         }
 
-        .btn-danger {
+        .btn-danger, .btn-toggle {
             background-color: transparent;
-            color: #d93025;
             border: none;
             font-weight: 500;
             cursor: pointer;
         }
 
+        .btn-danger {
+            color: #d93025;
+        }
+
         .btn-danger:hover {
             text-decoration: underline;
+        }
+
+        .btn-toggle {
+            color: #1a73e8;
+        }
+
+        .btn-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .deactivated {
+            color: #d93025;
+            font-weight: bold;
         }
 
         .back-btn {
@@ -81,6 +97,7 @@
             <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -89,20 +106,29 @@
             <tr>
                 <td>{{ user.username }}</td>
                 <td>{{ user.email }}</td>
+                <td class="{% if not user.is_active %}deactivated{% endif %}">
+                    {% if user.is_active %}Active{% else %}Deactivated{% endif %}
+                </td>
                 <td>
                     {% if not user.is_superuser %}
+                        <form method="post" action="{% url 'toggle_user_status' user.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-toggle">
+                                {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                            </button>
+                        </form>
                         <form method="post" action="{% url 'delete_user' user.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn-danger">Delete</button>
                         </form>
                     {% else %}
-                        <span style="color: gray;">Cannot delete superuser</span>
+                        <span style="color: gray;">Cannot modify superuser</span>
                     {% endif %}
                 </td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="3">No users found.</td>
+                <td colspan="4">No users found.</td>
             </tr>
         {% endfor %}
         </tbody>
