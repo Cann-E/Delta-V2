@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view
+from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view, toggle_user_status,inactive_page,inactive
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -23,6 +23,9 @@ urlpatterns = [
     path("requests/", user_requests_view, name="view_requests"),
     path('success/', views.success_page_view, name='success_page'),
     path('request/<int:pk>/change-status/', change_request_status, name='change_request_status'),
+    path('users/toggle/<int:user_id>/', toggle_user_status, name='toggle_user_status'),
+    path('inactive_page/', inactive_page, name='inactive_page'),
+    path('inactive/', inactive, name='inactive'),
 
 ]
 
