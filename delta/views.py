@@ -7,6 +7,9 @@ from .models import Request
 from .pdf_utils import generate_pdf_for_request
 from datetime import date
 from .forms import RequestStatusForm
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from delta.models import CustomUser
 
 def is_admin(user):
     return user.is_staff or user.is_superuser
@@ -180,3 +183,23 @@ def change_request_status(request, pk):
         form = RequestStatusForm(instance=req)
 
     return render(request, 'change_request_status.html', {'form': form})
+
+@login_required
+def toggle_user_status(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    if not user.is_superuser:  # Prevent toggling superuser accounts
+        user.is_active = not user.is_active
+        user.save()
+    return redirect('user_list')
+
+
+@login_required
+def inactive_page(request):
+    if not request.user.is_active:
+        return redirect('inactive_page')  # Redirect to a page that informs the user
+    users = CustomUser.objects.all()
+    return render(request, 'basic_dashboard.html', {'users': users})
+
+def inactive(request):
+    # You can pass any relevant data to the template if needed
+    return render(request, 'inactive.html')
