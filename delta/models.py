@@ -87,4 +87,14 @@ class Request(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.request_type} ({self.status})"
+#NAM2    
+class Notification(models.Model):
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"To: {self.recipient.username} - {self.message[:40]}"    
+
 

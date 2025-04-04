@@ -7,6 +7,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.views.decorators.http import require_POST
+from django.contrib.auth.backends import ModelBackend
 
 from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm
 from .models import Request
@@ -14,6 +16,8 @@ from .pdf_utils import generate_pdf_for_request
 from datetime import date
 from .forms import RequestStatusForm
 from delta.models import CustomUser
+from .models import Notification
+from delta.notifications import notify_admins, notify_user
 
 import msal
 import requests
@@ -28,6 +32,7 @@ def is_admin(user):
 def delete_user_view(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     user.delete()
+    notify_admins(f"❌ {user.username} was deleted by {request.user.username}")
     return redirect('user_list')
 
 # admin can see list of users
@@ -43,7 +48,11 @@ def home_view(request):
     print("Home view hit. is_active =", request.user.is_active)
     if not request.user.is_active:
         return redirect('inactive_page.html')# Prevents the redirect loop
-    template = 'home.html' if request.user.is_superuser else 'basic_dashboard.html'
+    if request.user.role == 'admin':
+        template = 'home.html'
+    else:
+        template = 'basic_dashboard.html'
+
     return render(request, template, {'user': request.user})
 
 # create request based on request type
@@ -80,6 +89,7 @@ def submit_request_view(request, request_id):
     if req.status == 'draft':
         req.status = 'pending'
         req.save()
+    notify_admins(f"📄 {request.user.username} submitted a {req.request_type} request.")
     return redirect('request_detail', request_id=req.id)
 
 # admin can view all pending requests
@@ -105,6 +115,11 @@ def submit_request(request):
             new_address=request.POST.get("new_address", ""),
             status="pending",
         )
+        
+        notify_admins(
+            f"📥 New request submitted by {request.user.username} — type: {req.request_type}"
+        )
+        
         return redirect("success_page")
     return render(request, "create_request.html")
 
@@ -115,6 +130,7 @@ def approve_request_view(request, request_id):
     req.status = 'approved'
     req.save()
     pdf_path = generate_pdf_for_request(req)
+    notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
     print(f"✅ PDF generated at: {pdf_path}")
     return redirect('pending_requests')
 
@@ -126,6 +142,7 @@ def return_request_view(request, request_id):
     req = get_object_or_404(Request, id=request_id, status='pending')
     req.status = 'returned'
     req.save()
+    notify_user(req.user, f"🔁 Your {req.request_type} request was returned by {request.user.username}.")
     return redirect('pending_requests')
 
 # user can view their own requests
@@ -178,10 +195,12 @@ def upload_signature_view(request):
         form = SignatureUploadForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
+            notify_admins(f"✍️ {request.user.username} uploaded a new signature.")
             return redirect('home')
     else:
         form = SignatureUploadForm(instance=request.user)
     return render(request, 'upload_signature.html', {'form': form})
+
 
 # admin can change request status
 @login_required
@@ -277,18 +296,21 @@ def microsoft_callback(request):
         )
         user.set_password(CustomUser.objects.make_random_password())
         user.save()
+    if not user.is_active:
+        notify_admins(f"🆕 New user registered: {user.email} ({user.username}) — account pending activation.")
+    if user.is_active:
+        notify_admins(f"✅ {user.username} ({user.email}) just logged in.")
 
     user.backend = "django.contrib.auth.backends.ModelBackend"
     print(">>> Logging in user:", user.email)
     login(request, user)
-    request.user = user
+
     print(">>> Login succeeded, saving session.")
     request.session.save()
     user = get_user_model().objects.get(id=user.id)
     print(">>> User authenticated?", request.user.is_authenticated)
     print(">>> User active?", request.user.is_active)
 
-    request.user = user
     refresh = RefreshToken.for_user(user)
     request.session["access_token"] = str(refresh.access_token)
     request.session["refresh_token"] = str(refresh)
@@ -307,3 +329,29 @@ def microsoft_callback(request):
 def microsoft_logout(request):
     logout(request)
     return redirect(settings.LOGOUT_REDIRECT_URL or "/login")
+
+#NAM2
+@login_required
+def view_notifications(request):
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+    return render(request, 'notifications.html', {'notifications': notifications})
+
+
+#NAM2
+@login_required
+@require_POST
+def toggle_read_status(request, notification_id):
+    notif = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notif.is_read = not notif.is_read
+    notif.save()
+    return redirect('view_notifications')
+
+@login_required
+def unread_count_view(request):
+    count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    return JsonResponse({'unread_count': count})
+
+@login_required
+def unread_count(request):
+    count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+    return JsonResponse({'unread_count': count})
