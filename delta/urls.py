@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view, toggle_user_status,inactive_page,inactive
+from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view, toggle_user_status,inactive_page,inactive, toggle_read_status, unread_count_view, unread_count
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -30,6 +30,10 @@ urlpatterns = [
     path('login/microsoft/', microsoft_login, name='microsoft-login'),
     path("login/microsoft/callback/", microsoft_callback, name="microsoft-callback"),
     path('logout/', microsoft_logout, name='microsoft-logout'),
+    path('notifications/', views.view_notifications, name='view_notifications'),
+    path('notifications/toggle/<int:notification_id>/', toggle_read_status, name='toggle_read_status'),
+    path('notifications/unread-count/', unread_count_view, name='unread_count'),
+    path('notifications/unread-count/', unread_count, name='unread_count'),
 
 ]
 

@@ -20,6 +20,7 @@ MICROSOFT_AUTH_CLIENT_ID = os.getenv("MICROSOFT_AUTH_CLIENT_ID")
 MICROSOFT_AUTH_CLIENT_SECRET = os.getenv("MICROSOFT_AUTH_CLIENT_SECRET")
 
 LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/microsoft/' 
 LOGOUT_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
@@ -94,7 +95,8 @@ DATABASES = {
 
 AUTHENTICATION_BACKENDS = [
     'delta.backends.AllowInactiveModelBackend',  # Your custom backend
-    'allauth.account.auth_backends.AuthenticationBackend',  # Keep Allauth
+    #'allauth.account.auth_backends.AuthenticationBackend',  # Keep Allauth
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Authentication

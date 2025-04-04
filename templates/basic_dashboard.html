@@ -9,7 +9,6 @@
     </script>
     {% endif %}
 
-
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +27,7 @@
         }
 
         .dashboard-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 60px auto;
             padding: 0 20px;
         }
@@ -53,37 +52,56 @@
             margin: 10px 0;
         }
 
-        .action-buttons {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: auto;
         }
 
-        .btn {
-            padding: 12px 20px;
-            background-color: #1a73e8;
-            color: white;
+        .card {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            background-color: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .card i {
+            font-size: 2rem;
+            color: #1a73e8;
+            margin-bottom: 12px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card a {
             text-decoration: none;
-            border-radius: 8px;
+            color: #007c89;
             font-weight: 500;
-            transition: background-color 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 0.95rem;
         }
 
-        .btn:hover {
-            background-color: #155cc4;
-        }
-
-        .logout-btn i {
-            color: #fff;
-        }
-
-        .save-btn i {
-            color: #fff;
+        .card a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -99,13 +117,41 @@
             <p>This is a secure user dashboard with authentication and approval tracking.</p>
             <p>You are logged in as <strong>{{ user.username }}</strong></p>
 
-            <div class="action-buttons">
-                <a href="{% url 'account_logout' %}" class="btn logout-btn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-                <a href="{% url 'upload_signature' %}" class="btn save-btn">
-                    <i class="fas fa-pen-nib"></i> Upload Signature
-                </a>
+            <div class="grid">
+                <div class="card">
+                    <i class="fas fa-pen-nib"></i>
+                    <h3>Upload Signature</h3>
+                    <p>Add or update your digital signature.</p>
+                    <a href="{% url 'upload_signature' %}">Upload</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-pencil-alt"></i>
+                    <h3>Create New Request</h3>
+                    <p>Submit a new form or request for approval.</p>
+                    <a href="{% url 'create_request' 'change_major' %}">Create</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>View My Requests</h3>
+                    <p>Track your past and pending requests.</p>
+                    <a href="{% url 'view_requests' %}">View</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-bell"></i>
+                    <h3>Notifications</h3>
+                    <p>View recent activity.</p>
+                    <a href="{% url 'view_notifications' %}">View</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <h3>Logout</h3>
+                    <p>Sign out of your account securely.</p>
+                    <a href="{% url 'account_logout' %}">Sign out</a>
+                </div>
             </div>
         </div>
         {% endblock %}

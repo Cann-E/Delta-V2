@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, Notification
 
 # Customize the User Admin page
 class CustomUserAdmin(UserAdmin):
@@ -36,3 +36,8 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('recipient', 'message', 'created_at', 'is_read')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('recipient__username', 'message')
