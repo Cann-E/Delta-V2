@@ -1,6 +1,9 @@
 from django import forms
 from .models import Request
 from .models import CustomUser
+from allauth.account.forms import LoginForm
+from django.contrib.auth import authenticate
+from django.forms import ValidationError
 
 class ChangeMajorForm(forms.ModelForm):
     class Meta:
@@ -24,3 +27,14 @@ class RequestStatusForm(forms.ModelForm):
         model = Request
         fields = ['status']
     
+class MyLoginForm(LoginForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        login = cleaned_data.get("login")
+        password = cleaned_data.get("password")
+
+        user = authenticate(self.request, username=login, password=password)
+        if user and not user.is_active:
+            raise ValidationError("This account is currently inactive.")
+
+        return cleaned_data

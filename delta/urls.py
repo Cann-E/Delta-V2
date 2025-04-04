@@ -5,6 +5,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import change_request_status
+from delta.views import microsoft_login, microsoft_callback, microsoft_logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,6 +27,9 @@ urlpatterns = [
     path('users/toggle/<int:user_id>/', toggle_user_status, name='toggle_user_status'),
     path('inactive_page/', inactive_page, name='inactive_page'),
     path('inactive/', inactive, name='inactive'),
+    path('login/microsoft/', microsoft_login, name='microsoft-login'),
+    path("login/microsoft/callback/", microsoft_callback, name="microsoft-callback"),
+    path('logout/', microsoft_logout, name='microsoft-logout'),
 
 ]
 

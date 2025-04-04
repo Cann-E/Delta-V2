@@ -25,6 +25,10 @@ services:
       - DATABASE_PASSWORD=caonhatnam2003
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - .:/app                    # ← This is good for live reloading
 
 volumes:
   postgres_data:

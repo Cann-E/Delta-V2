@@ -5,7 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # Load environment variables from .env
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(Path(__file__).resolve().parent.parent, ".env"))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,6 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'default-fallback-secret-key')  
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+MICROSOFT_AUTH_TENANT_ID = os.getenv('MICROSOFT_AUTH_TENANT_ID') 
+MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/170bbabd-a2f0-4c90-ad4b-0e8f0f0c4259"
+MICROSOFT_AUTH_REDIRECT_URI = os.getenv("MICROSOFT_AUTH_REDIRECT_URI")
+MICROSOFT_AUTH_CLIENT_ID = os.getenv("MICROSOFT_AUTH_CLIENT_ID")
+MICROSOFT_AUTH_CLIENT_SECRET = os.getenv("MICROSOFT_AUTH_CLIENT_SECRET")
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -26,7 +35,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.microsoft',
+    #'allauth.socialaccount.providers.microsoft',
     'delta',
 ]
 
@@ -77,13 +86,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DATABASE_NAME', 'delta_db'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'caonhatnam2003'),
-        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
-        'PORT': os.environ.get('DATABASE_PORT', '5432'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
-
+AUTHENTICATION_BACKENDS = [
+    'delta.backends.AllowInactiveModelBackend',  # Your custom backend
+    'allauth.account.auth_backends.AuthenticationBackend',  # Keep Allauth
+]
 
 # Authentication
 AUTH_PASSWORD_VALIDATORS = [
@@ -92,10 +104,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -109,8 +117,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SOCIALACCOUNT_PROVIDERS = {
     'microsoft': {
         'APP': {
-            'client_id': os.getenv('MICROSOFT_CLIENT_ID'),
-            'secret': os.getenv('MICROSOFT_SECRET'),
+            'client_id': os.getenv('MICROSOFT_AUTH_CLIENT_ID'),
+            'secret': os.getenv('MICROSOFT_AUTH_CLIENT_SECRET'),
             'key': '',
         },
         "AUTH_PARAMS": {"scope": "openid email profile"},
@@ -124,3 +132,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # A temporary directory for LaTeX compilation output
 TEMP_PDF_DIR = os.path.join(BASE_DIR, 'temp_pdf')
+
+print("Loaded DB password:", os.getenv("DATABASE_PASSWORD"))
+
+# Disable rate limit in local/dev
+if DEBUG:
+    ACCOUNT_RATE_LIMITS = {"login_failed": None}
+    
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_ADAPTER = "delta.adapters.CustomAccountAdapter"
+ACCOUNT_FORMS = {
+    'login': 'delta.forms.MyLoginForm', 
+}

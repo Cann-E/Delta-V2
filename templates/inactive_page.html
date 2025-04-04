@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding-top: 100px;">
+        
+  <h2>Your account is currently inactive.</h2>
+  <p>{{ user.email }} ({{ user.username }}) is not yet activated.</p>
+  <p>Please contact an administrator for access.</p>
+
+  <form method="post" action="{% url 'microsoft-logout' %}" style="margin-top: 20px;">
+    {% csrf_token %}
+    <button type="submit" style="
+      background-color: #d9534f;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    ">
+      Log Out
+    </button>
+  </form>
+</div>
+{% endblock %}

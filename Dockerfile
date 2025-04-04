@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install build dependencies: gcc, libpq-dev (provides pg_config) and netcat-openbsd
 RUN apt-get update && \
-    apt-get install -y gcc libpq-dev netcat-openbsd && \
+    apt-get install -y gcc libpq-dev netcat-openbsd ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python packages
