@@ -127,7 +127,7 @@ input[type="password"] {
         <div class="login-header">
             <h2>Login to Delta</h2>
         </div>
-
+        
         {% if not SOCIALACCOUNT_ONLY %}
         {% url 'account_login' as login_url %}
         <form method="post" action="{{ login_url }}">
@@ -150,9 +150,7 @@ input[type="password"] {
 
         {% if SOCIALACCOUNT_ENABLED %}
         <div class="microsoft-login">
-            <a href="{% provider_login_url 'microsoft' %}">
-                Sign in with Microsoft
-            </a>
+            <a href="{% url 'microsoft-login' %}">Sign in with Microsoft</a>
         </div>
         {% endif %}
 

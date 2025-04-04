@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% if not user.is_active %}
     <script>
-    window.onload = function() {
-        window.location.href = "{% url 'inactive_page' %}";
-    }
-</script>
+        window.onload = function() {
+            window.location.href = "{% url 'inactive_page' %}";
+        }
+    </script>
+    {% endif %}
+
 
     {% load static %}
     <meta charset="UTF-8">
