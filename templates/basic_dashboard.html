@@ -17,36 +17,49 @@
     <!-- External & Static Styles -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
     <style>
-        body {
-            background-color: #f4f6fc;
-            font-family: 'Segoe UI', sans-serif;
+        html, body {
+            height: 100%;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fc;
             color: #222;
         }
 
-        .dashboard-container {
-            max-width: 1000px;
-            margin: 60px auto;
-            padding: 0 20px;
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        .welcome-section {
+        .dashboard-main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            width: 100%;
+        }
+
+        .content-header {
             background: #fff;
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
             text-align: center;
+            max-width: 1000px;
+            width: 100%;
         }
 
-        .welcome-section h1 {
+        .content-header h1 {
             font-size: 2.2rem;
             margin-bottom: 12px;
             color: #1a237e;
         }
 
-        .welcome-section p {
+        .content-header p {
             font-size: 1.05rem;
             color: #555;
             margin: 10px 0;
@@ -103,16 +116,27 @@
         .card a:hover {
             text-decoration: underline;
         }
+
+        footer {
+            flex-shrink: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
-
+<div class="page-container">
     <!-- Reusable Header -->
     {% include 'header.html' %}
 
-    <main class="dashboard-container">
+    <!-- Main Dashboard -->
+    <main class="dashboard-main">
         {% block content %}
-        <div class="welcome-section">
+        <div class="content-header">
             <h1>Welcome to Delta</h1>
             <p>This is a secure user dashboard with authentication and approval tracking.</p>
             <p>You are logged in as <strong>{{ user.username }}</strong></p>
@@ -150,7 +174,7 @@
                     <i class="fas fa-sign-out-alt"></i>
                     <h3>Logout</h3>
                     <p>Sign out of your account securely.</p>
-                    <a href="{% url 'account_logout' %}">Sign out</a>
+                    <a href="{% url 'microsoft-logout' %}">Sign out</a>
                 </div>
             </div>
         </div>
@@ -159,5 +183,6 @@
 
     <!-- Reusable Footer -->
     {% include 'footer.html' %}
+</div>
 </body>
 </html>

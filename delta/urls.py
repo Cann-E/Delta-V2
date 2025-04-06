@@ -4,7 +4,7 @@ from .views import home_view, upload_signature_view, user_list_view, delete_user
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import change_request_status
+from .views import change_request_status, CustomLoginView
 from delta.views import microsoft_login, microsoft_callback, microsoft_logout
 
 urlpatterns = [
@@ -12,7 +12,8 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('users/', user_list_view, name='user_list'),  # View users
     path('delete_user/<int:user_id>/', delete_user_view, name='delete_user'),  
-    path('accounts/', include('allauth.urls')),  
+    path('accounts/', include('allauth.urls')), 
+    path("accounts/login/", CustomLoginView.as_view(), name="account_login"), 
     path('create/<str:request_type>/', views.create_request_view, name='create_request'),
     path('detail/<int:request_id>/', views.request_detail_view, name='request_detail'),
     path('submit/<int:request_id>/', views.submit_request_view, name='submit_request'),
