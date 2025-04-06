@@ -1,0 +1,14 @@
+<!-- In pending_requests.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h2>Pending Requests</h2>
+<ul>
+  {% for request in pending_requests %}
+    <li>
+      {{ request.description }} - {{ request.status }}
+      <!-- Add an Approve button -->
+      <a href="{% url 'approve_request' request.id %}">Approve</a>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}
