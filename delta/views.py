@@ -1,14 +1,17 @@
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model, authenticate, logout
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.http import JsonResponse
+from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.http import require_POST
 from django.contrib.auth.backends import ModelBackend
+
+from allauth.account.views import LoginView
 
 from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm
 from .models import Request
@@ -21,6 +24,7 @@ from delta.notifications import notify_admins, notify_user
 
 import msal
 import requests
+import urllib.parse
 
 # check if user is admin
 def is_admin(user):
@@ -304,6 +308,7 @@ def microsoft_callback(request):
     user.backend = "django.contrib.auth.backends.ModelBackend"
     print(">>> Logging in user:", user.email)
     login(request, user)
+    request.session["is_microsoft_login"] = True # Track it's a Microsoft login
 
     print(">>> Login succeeded, saving session.")
     request.session.save()
@@ -325,10 +330,33 @@ def microsoft_callback(request):
     messages.success(request, f"Welcome back, {user.first_name}!")
     return redirect("/")
 
-
+#FIXED: error when local account logs out, instead of sending back to account/login/, they get 
+#       sent to Microsoft authentication log in procedure, then the Microsoft account is 
+#       logged in. Loop of not being able to log out, basically
 def microsoft_logout(request):
+    # STEP 1: Store value in local variable first
+    is_microsoft_login = request.session.get("is_microsoft_login", False)
+
+    # STEP 2: Do logout and flush (losing the token status of logging out Microsoft, hence we store it in local var)
     logout(request)
-    return redirect(settings.LOGOUT_REDIRECT_URL or "/login")
+    request.session.flush()
+
+    # STEP 3: Use the stored value safely
+    if is_microsoft_login:
+        microsoft_logout_url = "https://login.microsoftonline.com/common/oauth2/v2.0/logout"
+        post_logout_redirect_uri = request.build_absolute_uri("/accounts/login/")
+        logout_redirect_url = (
+            f"{microsoft_logout_url}?post_logout_redirect_uri={urllib.parse.quote(post_logout_redirect_uri)}"
+        )
+        return redirect(logout_redirect_url)
+
+    return redirect("/accounts/login/")
+
+class CustomLoginView(LoginView):
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.request.session["is_microsoft_login"] = False  # It's a local login
+        return response
 
 #NAM2
 @login_required
