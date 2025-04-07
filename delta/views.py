@@ -1,3 +1,4 @@
+import os
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -25,6 +26,8 @@ from delta.notifications import notify_admins, notify_user
 import msal
 import requests
 import urllib.parse
+import re
+
 
 # check if user is admin
 def is_admin(user):
@@ -59,26 +62,73 @@ def home_view(request):
 
     return render(request, template, {'user': request.user})
 
+def latex_escape(s):
+    """Escape LaTeX special characters in a string."""
+    if not s:
+        return ""
+    return re.sub(r'([#\$%&~_^\\{}])', r'\\\1', str(s))
 # create request based on request type
 @login_required
 def create_request_view(request, request_type):
-    form_class = ChangeMajorForm if request_type == 'change_major' else ChangeAddressForm
-    
+    # Choose the appropriate form class based on the request type
+    if request_type == 'change_major':
+        form_class = ChangeMajorForm
+    elif request_type == 'change_address':
+        form_class = ChangeAddressForm
+    else:
+        # Default or handle error
+        form_class = ChangeMajorForm
+
     if request.method == 'POST':
         form = form_class(request.POST)
         if form.is_valid():
             new_request = form.save(commit=False)
             new_request.user = request.user
-            new_request.first_name = request.user.first_name
-            new_request.last_name = request.user.last_name
-            new_request.request_type = request_type
-            new_request.status = 'draft'
+            new_request.request_type = request_type  # set the request type
             new_request.save()
+
+            # Choose the right LaTeX template based on request_type
+            if request_type == 'change_major':
+                template_name = 'change_major.tex'
+            elif request_type == 'change_address':
+                template_name = 'change_address.tex'
+            else:
+                template_name = 'default_request.tex'
+
+            # Build the full path to the template file
+            template_path = os.path.join(settings.BASE_DIR, 'delta', 'PDF', template_name)
+
+            # Prepare context for LaTeX rendering
+            context = {
+                'first_name': latex_escape(request.user.first_name),
+                'last_name': latex_escape(request.user.last_name),
+                'request_type': latex_escape(new_request.request_type),
+                'explanation': latex_escape(new_request.explanation),
+                'current_major': latex_escape(new_request.current_major),
+                'new_major': latex_escape(new_request.new_major),
+                'old_address': latex_escape(new_request.old_address),
+                'new_address': latex_escape(new_request.new_address),
+            }
+
+            # Set the output file name
+            output_filename = f"request_{new_request.pk}.pdf"
+
+            # Generate the PDF
+            path = generate_pdf_for_request(template_path, context, output_filename)
+
+            if path:
+                # Save the relative path so Django can serve the file via MEDIA_URL
+                new_request.pdf_file.name = os.path.relpath(path, settings.MEDIA_ROOT)
+                new_request.save(update_fields=["pdf_file"])
+                print(f"[SUCCESS] PDF generated and attached: {path}")
+            else:
+                print("[ERROR] Failed to generate PDF")
+
             return redirect('request_detail', request_id=new_request.id)
     else:
         form = form_class()
 
-    return render(request, 'create_request.html', {'form': form, 'request_type': request_type})
+    return render(request, 'create_request.html', {'form': form})
 
 # shows request details
 @login_required
@@ -102,6 +152,18 @@ def pending_requests_view(request):
     if not request.user.is_staff:
         return redirect('home')
     pending_reqs = Request.objects.filter(status='pending')
+ 
+    for req in pending_reqs:
+        # Skip if we already have a PDF on file
+        if req.pdf_file:
+            continue
+        
+        pdf_path = generate_pdf_for_request(req)
+        if pdf_path and os.path.exists(pdf_path):
+            # Open the local file in binary mode and attach to the model
+            with open(pdf_path, 'rb') as f:
+                req.pdf_file.save(f"request_{req.id}.pdf", File(f), save=True)
+    
     return render(request, 'pending_requests.html', {'pending_requests': pending_reqs})
 
 # submit request using POST
@@ -144,10 +206,17 @@ def approve_request_view(request, request_id):
         req.user.address = req.new_address
         req.user.save()
 
-    # Optionally generate a PDF
+    # Generate PDF
     pdf_path = generate_pdf_for_request(req)
-    notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
-    print(f"✅ PDF generated at: {pdf_path}")
+
+    # Save PDF path to the request object (if your model has a FileField)
+    if pdf_path:
+        relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+        req.pdf_file.name = relative_path  # assumes FileField named 'pdf_file'
+        req.save()
+
+        notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
+        print(f"✅ PDF generated at: {pdf_path}")
 
     return redirect('pending_requests')
 
@@ -167,33 +236,6 @@ def return_request_view(request, request_id):
 def user_requests_view(request):
     user_requests = Request.objects.filter(user=request.user)
     return render(request, "user_requests.html", {"requests": user_requests})
-
-# same create request view again (duplicate)
-@login_required
-def create_request_view(request, request_type):
-    form_class = ChangeMajorForm if request_type == 'change_major' else ChangeAddressForm
-
-    if request.method == 'POST':
-        form = form_class(request.POST)
-        if form.is_valid():
-            new_request = form.save(commit=False)
-            new_request.user = request.user
-            new_request.first_name = request.POST.get("first_name", request.user.first_name)
-            new_request.last_name = request.POST.get("last_name", request.user.last_name)
-            new_request.request_type = request_type
-            new_request.current_major = request.POST.get("current_major", "Unknown")
-            new_request.status = 'draft'
-            new_request.date_created = request.POST.get("date_created", date.today())
-            new_request.save()
-            return redirect('request_detail', request_id=new_request.id)
-    else:
-        form = form_class()
-
-    return render(request, 'create_request.html', {
-        'form': form,
-        'request_type': request_type,
-        'today_date': date.today().strftime('%Y-%m-%d')
-    })
 
 # show list of requests for user
 @login_required
@@ -396,3 +438,13 @@ def unread_count_view(request):
 def unread_count(request):
     count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     return JsonResponse({'unread_count': count})
+
+@login_required
+def pdf_view(request, request_id):
+    req = get_object_or_404(Request, id=request_id, user=request.user)
+    if req.pdf_file:
+        pdf_path = req.pdf_file.url
+        return redirect(pdf_path)
+    else:
+        messages.error(request, "PDF not found.")
+        return redirect('request_detail', request_id=req.id)

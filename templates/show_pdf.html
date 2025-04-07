@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Your PDF</h2>
+  {% if req.pdf_file %}
+    <iframe src="{{ req.pdf_file.url }}" width="100%" height="600px"></iframe>
+    <p><a href="{{ req.pdf_file.url }}" download>Download PDF</a></p>
+  {% else %}
+    <p>No PDF has been generated for this request.</p>
+  {% endif %}
+{% endblock %}

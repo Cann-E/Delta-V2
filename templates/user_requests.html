@@ -85,7 +85,13 @@
                 </td>
                 <td>{{ req.date_created }}</td>
                 <td>
-                    <a href="{% url 'request_detail' request_id=req.id %}" class="btn btn-custom">View</a>
+                    
+                        <a href="{% url 'request_detail' request_id=req.id %}" class="btn btn-custom">View</a>
+                        {% if req.pdf_file %}
+                            <a href="{{ req.pdf_file.url }}" target="_blank" class="btn btn-custom mt-1">View PDF</a>
+                        {% endif %}
+                
+                    
                 </td>
             </tr>
             {% empty %}

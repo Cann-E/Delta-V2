@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:14
     environment:
-      POSTGRES_DB: delta_db
+      POSTGRES_DB: softwareengine
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: caonhatnam2003
+      POSTGRES_PASSWORD: B!rds19671967
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -14,7 +14,7 @@ services:
 
   web:
     build: .
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: tail -f /dev/null 
     ports:
       - "8000:8000"
     depends_on:
@@ -25,10 +25,14 @@ services:
       - DATABASE_PASSWORD=caonhatnam2003
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
+      - SQL_HOST=db              # for wait-for-db.sh script
+      - SQL_PORT=5432
       - PYTHONUNBUFFERED=1
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - .:/app                    # ← This is good for live reloading
+      - .:/app
+  
 
 volumes:
   postgres_data:
+

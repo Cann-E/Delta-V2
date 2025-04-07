@@ -100,26 +100,37 @@
     </div>
 
     {% if pending_requests %}
-        <div class="request-list">
-            {% for request in pending_requests %}
-                <div class="request-card">
-                    <div class="request-info">
-                        <i class="fas fa-file-alt"></i>
-                        <div>
-                            <div class="request-description">{{ request.description }}</div>
-                            <div class="request-status">Status: <strong>{{ request.status }}</strong></div>
-                        </div>
-                    </div>
-                    <a href="{% url 'approve_request' request.id %}" class="approve-btn">
-                        <i class="fas fa-check"></i> Approve
-                    </a>
-                </div>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Request Type</th>
+                <th>Status</th>
+                <th>PDF</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in pending_requests %}
+              <tr>
+                <td>{{ req.user.username }}</td>
+                <td>{{ req.request_type }}</td>
+                <td>{{ req.status }}</td>
+                <td>
+                  {% if req.pdf_file %}
+                    <a href="{{ req.pdf_file.url }}" target="_blank">View PDF</a>
+                  {% else %}
+                    No PDF yet
+                  {% endif %}
+                </td>
+              </tr>
             {% endfor %}
-        </div>
+        </tbody>
+    </table>
     {% else %}
         <div class="empty-message">
             <i class="fas fa-check-double"></i> No pending requests at the moment.
         </div>
     {% endif %}
+  
 </div>
 {% endblock %}

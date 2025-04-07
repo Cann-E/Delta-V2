@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from django.conf import settings
 from django.conf.urls.static import static
+from django.core.files import File
 
 # Load environment variables from .env
 load_dotenv(dotenv_path=os.path.join(Path(__file__).resolve().parent.parent, ".env"))
@@ -85,10 +86,10 @@ WSGI_APPLICATION = 'delta.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME', 'delta_db'),
+        'NAME': os.getenv('DATABASE_NAME', 'softwareengine'),
         'USER': os.getenv('DATABASE_USER', 'postgres'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST', 'localhost'),
+        'HOST': os.getenv('DATABASE_HOST', 'db'),
         'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }

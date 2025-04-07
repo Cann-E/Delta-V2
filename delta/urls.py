@@ -5,7 +5,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import change_request_status, CustomLoginView
-from delta.views import microsoft_login, microsoft_callback, microsoft_logout
+from delta.views import microsoft_login, microsoft_callback, microsoft_logout, pdf_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('notifications/toggle/<int:notification_id>/', toggle_read_status, name='toggle_read_status'),
     path('notifications/unread-count/', unread_count_view, name='unread_count'),
     path('notifications/unread-count/', unread_count, name='unread_count'),
+    path('pdf/<int:request_id>/', pdf_view, name='pdf_view'),
 
 ]
 

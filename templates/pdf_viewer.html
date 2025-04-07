@@ -1,0 +1,7 @@
+{% if req.pdf_file %}
+    <h3>Generated PDF:</h3>
+    <iframe src="{{ req.pdf_file.url }}" width="100%" height="600px"></iframe>
+    <p><a href="{{ req.pdf_file.url }}" download>Download PDF</a></p>
+{% else %}
+    <p>No PDF generated yet.</p>
+{% endif %}

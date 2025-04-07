@@ -1,128 +1,71 @@
 import os
 import subprocess
-import shutil  # For finding pdflatex automatically
 from django.conf import settings
-import logging
+from django.template import Context, Template
 
-def generate_pdf_for_request(request):
-    """Generate a PDF for a change request (major or address)."""
 
-    # 🔹 Determine which LaTeX template to use based on request type
-    if request.request_type == "change_major":
-        TEX_FILE_PATH = os.path.join(settings.BASE_DIR, 'delta', 'PDF', 'change_major.tex')
-    elif request.request_type == "change_address":
-        TEX_FILE_PATH = os.path.join(settings.BASE_DIR, 'delta', 'PDF', 'change_address.tex')
+
+def generate_pdf_for_request(template_path, context_data, output_filename):
+    user = context_data.get("user")
+    if user:
+        signature_filename = f"user_{user.id}_signature.png"
+        signature_full_path = os.path.join(settings.MEDIA_ROOT, 'signatures', signature_filename)
+
+        if os.path.exists(signature_full_path):
+            context_data["signature_path"] = f"../signatures/{signature_filename}"  # path relative to .tex
+        else:
+            print(f"[WARN] Signature not found for user {user.id}")
+            context_data["signature_path"] = "media/signatures/snake_head.png"  # fallback image or skip
     else:
-        print(f"❌ ERROR: Unknown request type '{request.request_type}'")
-        return None
+        context_data["signature_path"] = "media/signatures/snake_head.png"
 
-    # 🔹 Define output paths
-    output_dir = os.path.join(settings.MEDIA_ROOT, 'generated_pdfs')
+    # Step 1: Read the .tex template
+    with open(template_path, 'r') as f:
+        raw_template = f.read()
+
+    # Step 2: Render template with context
+    template = Template(raw_template)
+    context = Context(context_data)
+    rendered_tex = template.render(context)
+
+ 
+    # Step 3: Save .tex to media/pdfs/
+    output_dir = os.path.join(settings.MEDIA_ROOT, 'pdfs')
     os.makedirs(output_dir, exist_ok=True)
-    temp_tex_path = os.path.join(output_dir, f'{request.request_type}_request_{request.id}.tex')
-    output_pdf_path = os.path.join(output_dir, f'{request.request_type}_request_{request.id}.pdf')
 
-        # 🔹 Determine Signature Path
-    if request.user.signature and os.path.exists(request.user.signature.path):
-        signature_path = os.path.abspath(request.user.signature.path)
-    else:
-        signature_path = os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'signatures', 'default_signature.png'))
-
-
-    # 🔹 Debugging Info
-    print(f"🔍 Using LaTeX Template: {TEX_FILE_PATH}")
-    print(f"📂 Output Directory: {output_dir}")
-    print(f"📄 Temporary TeX Path: {temp_tex_path}")
-    print(f"📄 Expected PDF Path: {output_pdf_path}")
-    print(f"🖊️ Signature Path: {signature_path}")
-
-    # 🔹 Check if the LaTeX template exists
-    if not os.path.exists(TEX_FILE_PATH):
-        print(f"❌ ERROR: LaTeX template '{TEX_FILE_PATH}' does NOT exist!")
-        return None
-
-    # 🔹 Read the LaTeX template
+    tex_path = os.path.join(output_dir, output_filename.replace('.pdf', '.tex'))
+    print(f"[DEBUG] Writing .tex file to: {tex_path}")
     try:
-        with open(TEX_FILE_PATH, 'r') as file:
-            template = file.read()
+        with open(tex_path, 'w') as tex_file:
+            tex_file.write(rendered_tex)
+        print(f"✅ LaTeX file successfully created: {tex_path}")
     except Exception as e:
-        print(f"❌ ERROR: Failed to read LaTeX template: {e}")
-        template = None  # Ensure template is defined
-
-    if not template:
-        print("❌ ERROR: Template is empty or not loaded.")
-        return None  # Exit the function safely
-
-    print("📜 Processed LaTeX Content:\n", template)  # ✅ Now it is safe to print
-
-    
-    logger = logging.getLogger(__name__)
-    logger.debug(f"User Info: First Name: {request.user.first_name}, Last Name: {request.user.last_name}, UH ID: {getattr(request.user, 'uh_id', 'Not set')}")
-    logger.debug(f"Email: {request.user.email}, Request Type: {request.request_type}")
-
-    # 🔹 Replace placeholders safely
-    placeholders = {
-    "FIRST_NAME": str(getattr(request.user, "first_name", "Not Provided") or "Not Provided").strip(),
-    "LAST_NAME": str(getattr(request.user, "last_name", "Not Provided") or "Not Provided").strip(),
-    "UH_ID": str(getattr(request.user, "uh_id", "000000") or "000000").strip(),
-    "EMAIL": str(getattr(request.user, "email", "email@example.com") or "email@example.com").strip(),
-    "PHONE_NUMBER": str(getattr(request.user, "phone_number", "123-456-7890") or "123-456-7890").strip(),
-    "MAILING_ADDRESS": str(getattr(request.user, "mailing_address", "123 University St.") or "123 University St.").strip(),
-    "DATE_SUBMITTED": request.date_created.strftime('%m/%d/%Y') if request.date_created else "Date Not Provided",
-    "REQUEST_TYPE": request.request_type.replace("_", " ").title(),
-    "CURRENT_MAJOR": str(getattr(request, "current_major", "Undeclared") or "Undeclared").strip(),
-    "NEW_MAJOR": str(getattr(request, "new_major", "Not Provided") or "Not Provided").strip(),
-    "OLD_ADDRESS": str(getattr(request, "old_address", "Not Provided") or "Not Provided").strip(),
-    "NEW_ADDRESS": str(getattr(request, "new_address", "Not Provided") or "Not Provided").strip(),
-    "EXPLANATION": str(getattr(request, "explanation", "Not Provided") or "Not Provided").strip(),
-
-    "SIGNATURE_PATH": signature_path.replace("\\", "/"),    }
-
-    for key, value in placeholders.items():
-        template = template.replace(key, str(value))  # ✅ Ensure all placeholders are replaced
-
-    # 🔹 Write the modified `.tex` file
-    try:
-        with open(temp_tex_path, 'w') as file:
-            file.write(template)
-    except Exception as e:
-        print(f"❌ ERROR: Failed to write .tex file: {e}")
+        print(f"[ERROR] Failed to write .tex file: {e}")
         return None
 
-    # 🔹 Confirm that the .tex file was created
-    if not os.path.exists(temp_tex_path):
-        print(f"❌ ERROR: .tex file was NOT created!")
-        return None
-    print(f"✅ LaTeX file successfully created: {temp_tex_path}")
 
-    # 🔹 Auto-detect pdflatex path
-    pdflatex_path = shutil.which("pdflatex")
-
-    # 🔹 If pdflatex is missing, fall back to default path
-    if not pdflatex_path:
-        pdflatex_path = r"C:\Program Files\MiKTeX\miktex\bin\x64\pdflatex.exe"
-
-    # 🔹 Check if pdflatex exists
-    if not os.path.exists(pdflatex_path):
-        print(f"❌ ERROR: pdflatex not found at {pdflatex_path}")
-        return None
-
-    # 🔹 Compile the LaTeX document into a PDF
+    # Step 4: Run pdflatex and log output
     try:
         result = subprocess.run(
-            [pdflatex_path, "-interaction=nonstopmode", "-output-directory", output_dir, temp_tex_path],
-            check=True, capture_output=True, text=True
+            ['pdflatex', '-output-directory', output_dir, tex_path],
+            check=True,
+            capture_output=True,
+            text=True
         )
-        print(f"✅ PDF Compilation Output:\n{result.stdout}")
+        print("[DEBUG] pdflatex output:", result.stdout)
+        print("[DEBUG] pdflatex errors:", result.stderr)
     except subprocess.CalledProcessError as e:
-        print(f"❌ ERROR: PDF generation failed:\n{e.stderr}")
+        print("[ERROR] pdflatex failed:")
+        print("stdout:", e.stdout)
+        print("stderr:", e.stderr)
         return None
 
-    # 🔹 Confirm the PDF was created
-    if not os.path.exists(output_pdf_path):
-        print(f"❌ ERROR: PDF file was NOT created: {output_pdf_path}")
+
+    # Step 5: Return path to generated PDF
+    output_path = os.path.join(output_dir, output_filename)
+    if os.path.exists(output_path):
+        print(f"[SUCCESS] PDF generated at: {output_path}")
+        return output_path
+    else:
+        print("[ERROR] PDF not found after pdflatex run.")
         return None
-
-    print(f"✅ PDF successfully saved at: {output_pdf_path}")
-
-    return output_pdf_path
