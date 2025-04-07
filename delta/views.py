@@ -100,6 +100,7 @@ def create_request_view(request, request_type):
 
             # Prepare context for LaTeX rendering
             context = {
+                'user': request.user, 
                 'first_name': latex_escape(request.user.first_name),
                 'last_name': latex_escape(request.user.last_name),
                 'request_type': latex_escape(new_request.request_type),
@@ -253,11 +254,28 @@ def upload_signature_view(request):
     if request.method == 'POST':
         form = SignatureUploadForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
-            notify_admins(f"✍️ {request.user.username} uploaded a new signature.")
-            return redirect('home')
+            uploaded_file = request.FILES.get('signature')
+
+            if uploaded_file:
+                filename = f"user_{request.user.id}_signature.png"
+                signature_dir = os.path.join(settings.MEDIA_ROOT, 'signatures')
+                os.makedirs(signature_dir, exist_ok=True)
+
+                signature_path = os.path.join(signature_dir, filename)
+
+                # ✅ save the uploaded file manually with predictable name
+                with open(signature_path, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
+
+                # ✅ assign the path to the user's model
+                request.user.signature.name = f"signatures/{filename}"
+                request.user.save()
+
+            return redirect('home')  # or wherever you'd like to redirect after upload
     else:
         form = SignatureUploadForm(instance=request.user)
+
     return render(request, 'upload_signature.html', {'form': form})
 
 
