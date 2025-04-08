@@ -55,7 +55,7 @@ def home_view(request):
     print("Home view hit. is_active =", request.user.is_active)
     if not request.user.is_active:
         return redirect('inactive_page.html')# Prevents the redirect loop
-    if request.user.role == 'admin':
+    if request.user.role == 'admin' or request.user.is_superuser:
         template = 'home.html'
     else:
         template = 'basic_dashboard.html'
