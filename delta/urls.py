@@ -35,6 +35,7 @@ urlpatterns = [
     path('notifications/toggle/<int:notification_id>/', toggle_read_status, name='toggle_read_status'),
     path('notifications/unread-count/', unread_count_view, name='unread_count'),
     path('notifications/unread-count/', unread_count, name='unread_count'),
+    path('notifications/delete/', views.delete_notifications, name='delete_notifications'),
 
 ]
 

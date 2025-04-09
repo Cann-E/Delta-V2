@@ -62,7 +62,6 @@ class Request(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='requests')
     request_type = models.CharField(max_length=20)
 
-    # ✅ Ensure these fields exist in your model
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     explanation = models.TextField(blank=True, null=True)
@@ -96,5 +95,17 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"To: {self.recipient.username} - {self.message[:40]}"    
+#Notify admins when users sign up a new account    
+@receiver(post_save, sender=CustomUser)
+def notify_admins_on_new_signup(sender, instance, created, **kwargs):
+    if created:
+        from .models import Notification  # Avoid circular import
+        admins = CustomUser.objects.filter(role='admin', is_active=True)
+        for admin in admins:
+            Notification.objects.create(
+                recipient=admin,
+                message=f"🆕 New user registered: {instance.username} ({instance.email})"
+            )
+
 
 
