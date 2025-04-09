@@ -18,6 +18,20 @@
             font-size: 1.8rem;
             margin-bottom: 30px;
             color: #1a237e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trash-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .trash-btn i {
+            font-size: 1.4rem;
+            color: #c0392b;
         }
 
         .user-table {
@@ -62,11 +76,19 @@
     </style>
 </head>
 <body>
-    <h1>Notifications</h1>
+<form method="post" action="{% url 'delete_notifications' %}">
+    {% csrf_token %}
+    <h1>
+        Notifications
+        <button type="submit" class="trash-btn" title="Delete selected">
+            <i class="fas fa-trash"></i>
+        </button>
+    </h1>
 
     <table class="user-table">
         <thead>
             <tr>
+                <th><input type="checkbox" id="select-all"></th>
                 <th>From</th>
                 <th>Message</th>
                 <th>Timestamp</th>
@@ -75,18 +97,29 @@
         <tbody>
         {% for note in notifications %}
             <tr>
+                <td><input type="checkbox" name="notification_ids" value="{{ note.id }}"></td>
                 <td>{{ note.recipient.username }}</td>
                 <td>{{ note.message }}</td>
                 <td>{{ note.created_at|date:"Y-m-d H:i" }}</td>
             </tr>
         {% empty %}
             <tr>
-                <td colspan="3">No notifications yet.</td>
+                <td colspan="4">No notifications yet.</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+</form>
 
-    <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
+<a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
+
+<script>
+    document.getElementById('select-all').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('input[name="notification_ids"]');
+        for (const box of checkboxes) {
+            box.checked = this.checked;
+        }
+    });
+</script>
 </body>
 </html>

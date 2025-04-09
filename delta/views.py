@@ -363,7 +363,13 @@ class CustomLoginView(LoginView):
 def view_notifications(request):
     notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
     return render(request, 'notifications.html', {'notifications': notifications})
-
+# ADDED: delete selected notifications
+@require_POST
+@login_required
+def delete_notifications(request):
+    ids = request.POST.getlist('notification_ids')
+    Notification.objects.filter(id__in=ids, recipient=request.user).delete()
+    return redirect('view_notifications')
 
 #NAM2
 @login_required

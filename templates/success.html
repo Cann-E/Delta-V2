@@ -1,13 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Success</title>
+    <title>Delta - Success</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6fc;
+            font-family: 'Segoe UI', sans-serif;
+            color: #222;
+        }
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f4f6fc;
+            justify-content: space-between;
+        }
+
+        .success-main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        .success-card {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .success-card h1 {
+            font-size: 2rem;
+            color: #4caf50;
+            margin-bottom: 12px;
+        }
+
+        .success-card p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .success-card a {
+            display: inline-block;
+            text-decoration: none;
+            font-weight: 500;
+            color: #007c89;
+            margin-top: 16px;
+        }
+
+        .success-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Checkmark Styling */
+        .checkmark-circle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto 0;
+        }
+
+        .checkmark-icon {
+            width: 80px;
+            height: 80px;
+            animation: popCircle 0.3s ease-out;
+        }
+
+        @keyframes popCircle {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .checkmark-path {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: drawCheck 0.4s ease-out 0.4s forwards;
+        }
+
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        footer {
+            flex-shrink: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            margin-top: auto;
+        }
+    </style>
 </head>
 <body>
-    <h1>Request Submitted Successfully!</h1>
-    <p>Your request has been received.</p>
-    <a href="{% url 'home' %}">Return to Home</a>
+<div class="page-container">
+    {% include 'header.html' %}
+
+    <main class="success-main">
+        <div class="success-card">
+            <h1>Request Submitted Successfully!</h1>
+            <p>Your request has been received.</p>
+
+            <div class="checkmark-circle">
+                <svg class="checkmark-icon" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle-bg" cx="26" cy="26" r="25" fill="#4caf50" />
+                    <path class="checkmark-path" fill="none" stroke="#fff" stroke-width="5" d="M14 27l8 8 16-16"/>
+                </svg>
+            </div>
+
+            <a href="{% url 'home' %}">Return to Home</a>
+        </div>
+    </main>
+
+    {% include 'footer.html' %}
+</div>
 </body>
 </html>
