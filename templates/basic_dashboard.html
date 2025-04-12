@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% if not user.is_active %}
+    <script>
+        window.onload = function() {
+            window.location.href = "{% url 'inactive_page' %}";
+        }
+    </script>
+    {% endif %}
+
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Dashboard</title>
+
+    <!-- External & Static Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fc;
+            color: #222;
+        }
+
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content:space-between;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+            width: 100%;
+        }
+
+        .content-header {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .content-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            color: #1a237e;
+        }
+
+        .content-header p {
+            font-size: 1.05rem;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .card {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            background-color: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .card i {
+            font-size: 2rem;
+            color: #1a73e8;
+            margin-bottom: 12px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card a {
+            text-decoration: none;
+            color: #007c89;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            flex-shrink: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="page-container">
+    <!-- Reusable Header -->
+    {% include 'header.html' %}
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-main">
+        {% block content %}
+        <div class="content-header">
+            <h1>Welcome to Delta</h1>
+            <p>This is a secure user dashboard with authentication and approval tracking.</p>
+            <p>You are logged in as <strong>{{ user.username }}</strong></p>
+
+            <div class="grid">
+                <div class="card">
+                    <i class="fas fa-pen-nib"></i>
+                    <h3>Upload Signature</h3>
+                    <p>Add or update your digital signature.</p>
+                    <a href="{% url 'upload_signature' %}">Upload</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-pencil-alt"></i>
+                    <h3>Create New Request</h3>
+                    <p>Submit a new form or request for approval.</p>
+                    <a href="{% url 'create_request' 'change_major' %}">Create</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>View My Requests</h3>
+                    <p>Track your past and pending requests.</p>
+                    <a href="{% url 'view_requests' %}">View</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-bell"></i>
+                    <h3>Notifications</h3>
+                    <p>View recent activity.</p>
+                    <a href="{% url 'view_notifications' %}">View</a>
+                </div>
+
+                <div class="card">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <h3>Logout</h3>
+                    <p>Sign out of your account securely.</p>
+                    <a href="{% url 'microsoft-logout' %}">Sign out</a>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- Reusable Footer -->
+    {% include 'footer.html' %}
+</div>
+</body>
+</html>

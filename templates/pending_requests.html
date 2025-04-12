@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    body {
+        background-color: #f4f6fc;
+    }
+
+    .pending-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .pending-header {
+        text-align: center;
+        color: #1a237e;
+        margin-bottom: 30px;
+    }
+
+    .pending-header i {
+        font-size: 2rem;
+        color: #1a73e8;
+        margin-bottom: 10px;
+    }
+
+    .request-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .request-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background-color: #f9fafe;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        border-left: 4px solid #1a73e8;
+    }
+
+    .request-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .request-info i {
+        font-size: 1.4rem;
+        color: #1a73e8;
+    }
+
+    .request-description {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .request-status {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .approve-btn {
+        padding: 10px 16px;
+        background-color: #1a73e8;
+        color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .approve-btn:hover {
+        background-color: #155cc4;
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 50px;
+        color: #999;
+        font-style: italic;
+        font-size: 1.1rem;
+    }
+</style>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="pending-container">
+    <div class="pending-header">
+        <i class="fas fa-clock"></i>
+        <h2>Pending Requests</h2>
+    </div>
+
+    {% if pending_requests %}
+        <div class="request-list">
+            {% for request in pending_requests %}
+                <div class="request-card">
+                    <div class="request-info">
+                        <i class="fas fa-file-alt"></i>
+                        <div>
+                            <div class="request-description">{{ request.description }}</div>
+                            <div class="request-status">Status: <strong>{{ request.status }}</strong></div>
+                        </div>
+                    </div>
+                    <a href="{% url 'approve_request' request.id %}" class="approve-btn">
+                        <i class="fas fa-check"></i> Approve
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-message">
+            <i class="fas fa-check-double"></i> No pending requests at the moment.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

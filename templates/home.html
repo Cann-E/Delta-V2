@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta V2 - Home</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fc;
+            color: #222;
+        }
+
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content-header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+
+        .content-header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .content-header p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            padding: 40px 60px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            background-color: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .card img {
+            height: 48px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .card a {
+            text-decoration: none;
+            color: #007c89;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            flex-shrink: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="page-container">
+    {% if user.is_authenticated %}
+        <!-- Reusable UH-themed header -->
+        {% include 'header.html' %}
+
+        <div class="content-header">
+            <h1>Welcome to Delta V2</h1>
+            <p>You are logged in as: <strong>{{ user.username }}</strong></p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/admin-settings-male.png" alt="Admin">
+                <h3>Admin Panel</h3>
+                <p>Access Django’s built-in admin dashboard.</p>
+                <a href="{% url 'admin:index' %}">Go to Admin</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios-filled/50/user-group-man-man.png" alt="Users">
+                <h3>Manage Users</h3>
+                <p>View and manage platform users.</p>
+                <a href="{% url 'user_list' %}">Manage</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/pen.png" alt="Signature">
+                <h3>Upload Signature</h3>
+                <p>Add or update your digital signature.</p>
+                <a href="{% url 'upload_signature' %}">Upload</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/edit.png" alt="New Request">
+                <h3>Create New Request</h3>
+                <p>Submit a new form or request for approval.</p>
+                <a href="{% url 'submit_request' %}">Create</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/view-file.png" alt="Requests">
+                <h3>View My Requests</h3>
+                <p>Track your past and pending requests.</p>
+                <a href="{% url 'view_requests' %}">View</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios-filled/50/checkmark--v1.png" alt="Approve Requests">
+                <h3>Approve Requests</h3>
+                <p>Review and approve pending requests submitted by users.</p>
+                <a href="{% url 'pending_requests' %}">Approve</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/appointment-reminders.png" alt="Notifications">
+                <h3>Notifications</h3>
+                <p>View new user signups and recent activity.</p>
+                <a href="{% url 'view_notifications' %}">View</a>
+            </div>
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/document--v1.png" alt="Petition">
+                <h3>Submit General Petition</h3>
+                <p>General petition to change Major form online.</p>
+                <a href="{% url 'general_petition' %}">Start Petition</a>
+            </div>
+            
+
+            <div class="card">
+                <img src="https://img.icons8.com/ios/50/logout-rounded.png" alt="Logout">
+                <h3>Logout</h3>
+                <p>Sign out of your account securely.</p>
+                <a href="{% url 'microsoft-logout' %}">Logout</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="content-header">
+            <h1>Welcome to Delta V2</h1>
+            <p>You are not logged in.</p>
+            <a href="{% url 'account_login' %}">Login</a>
+        </div>
+    {% endif %}
+
+    {% include 'footer.html' %}
+</div>
+</body>
+</html>

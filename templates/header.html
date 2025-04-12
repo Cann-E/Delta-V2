@@ -1,0 +1,11 @@
+{% load static %}
+<header class="uh-header">
+    <div class="logo">
+        <img src="{% static 'admin/img/uh_logo.png' %}" alt="UH Logo" class="uh-logo-small">
+        <h1>DELTA DASHBOARD</h1>
+    </div>
+    <ul class="nav-links">
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'microsoft-logout' %}">Logout</a></li>
+    </ul>
+</header>

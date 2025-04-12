@@ -1,0 +1,105 @@
+{% extends 'basic_dashboard.html' %}
+
+{% block content %}
+<style>
+    .signature-container {
+        max-width: 500px;
+        margin: 60px auto;
+        background-color: #fff;
+        padding: 40px 30px;
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .signature-container h2 {
+        color: #1a237e;
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+    }
+
+    .signature-container form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .signature-container input[type="file"] {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        background-color: #1a73e8;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #155cc4;
+    }
+
+    .btn-danger {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 18px;
+        background-color: #e53935;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-danger:hover {
+        background-color: #c62828;
+    }
+
+    .current-signature {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .current-signature img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    .back-btn {
+        margin-top: 30px;
+        display: inline-block;
+        background-color: #1a73e8;
+        color: white;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="signature-container">
+    <h2>Upload Your Signature</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Save Signature</button>
+    </form>
+
+    {% if user.signature %}
+    <div class="current-signature">
+        <p>Current Signature:</p>
+        <img src="{{ user.signature.url }}" alt="Your Signature">
+    </div>
+    {% endif %}
+
+    <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
+</div>
+{% endblock %}
