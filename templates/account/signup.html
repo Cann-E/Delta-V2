@@ -1,0 +1,186 @@
+{% load i18n %}
+{% load allauth account socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up - Delta V2</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6fb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .signup-container {
+            background-color: #ffffff;
+            padding: 40px 32px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            width: %;
+            max-width: 460px;
+        }
+
+        .signup-container h2 {
+            margin-bottom: 16px;
+            color: #1a237e;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .messages {
+            margin-bottom: 20px;
+            color: #d32f2f;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 95%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .helptext {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .btn:hover {
+            background-color: #155cc4;
+        }
+
+        .bottom-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        .bottom-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .or-separator {
+            text-align: center;
+            margin: 24px 0;
+            position: relative;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .or-separator::before,
+        .or-separator::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ccc;
+        }
+
+        .or-separator::before {
+            left: 0;
+        }
+
+        .or-separator::after {
+            right: 0;
+        }
+
+        .social-login {
+            text-align: center;
+        }
+
+        .social-login a {
+            display: inline-block;
+            padding: 10px 16px;
+            background-color: #2f2f2f;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .social-login a:hover {
+            background-color: #1e1e1e;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Sign Up for Delta V2</h2>
+
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                        <div class="helptext">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <div class="helptext" style="color: #d32f2f;">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {{ redirect_field }}
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+
+        <div class="or-separator">or use a third-party</div>
+
+        {% if SOCIALACCOUNT_PROVIDERS %}
+            <div class="social-login">
+                <a href="{% provider_login_url 'microsoft' %}">
+                    <i class="fa-brands fa-microsoft"></i> Sign up with Microsoft
+                </a>
+            </div>
+        {% endif %}
+
+        <div class="bottom-link">
+            Already have an account? <a href="{% url 'account_login' %}">Sign in</a>
+        </div>
+    </div>
+</body>
+</html>

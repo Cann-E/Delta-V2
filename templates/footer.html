@@ -1,0 +1,147 @@
+{% load static %}
+<!-- footer.html -->
+<style>
+    .uh-footer {
+        font-family: 'Segoe UI', sans-serif;
+        margin-top: 60px;
+    }
+
+    .footer-red {
+        background-color: #C8102E;
+        color: #fff;
+        padding: 30px 50px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .footer-left,
+    .footer-center,
+    .footer-right {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    /* ✏️ Logo above address, centered vertically */
+    .footer-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .uh-logo {
+        height: 120px;
+        margin-bottom: 10px;
+        margin-left: -35px;
+    }
+
+    .footer-left p {
+        margin: 2px 0;
+        font-size: 0.95rem;
+        color: #fef3dc;
+    }
+
+    .footer-right {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .github-logo {
+        height: 60px;
+        transition: transform 0.2s ease;
+    }
+
+    .github-logo:hover {
+        transform: scale(1.1);
+    }
+
+    .footer-grey {
+        background-color: #4d4d4d;
+        color: #fff;
+        text-align: center;
+        padding: 12px 0;
+        font-size: 0.9rem;
+    }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .page-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .page-container > *:not(footer) {
+        flex: 0 0 auto;
+    }
+
+    footer {
+        margin-top: auto;
+    }
+    .uh-address-link {
+        text-decoration: none;
+        color:rgb(240, 214, 159);
+        transition: color 0.2s ease;
+        display: inline-block;
+    }
+    
+    .uh-address-link p {
+        margin: 2px 0;
+        font-size: 0.95rem;
+        color:rgb(240, 214, 159);
+    }
+    
+    .uh-address-link:hover p {
+        color: #ffffff;
+    }
+    
+    
+</style>
+
+
+<footer class="uh-footer">
+    <!-- Red Section -->
+    <div class="footer-red">
+        <div class="footer-content">
+            <!-- Left: UH Logo + Address -->
+            <div class="footer-left">
+                <img src="{% static 'admin/img/uh_logo1.png' %}" alt="UH Logo" class="uh-logo">
+                <div>
+                    <a href="https://maps.app.goo.gl/MN2ca7yFyjaJ6JPNA" target="_blank" class="uh-address-link">
+                        <p><strong>University of Houston</strong></p>
+                        <p>Houston, Texas 77204</p>
+                    </a>
+                    <p>(713) 743-2255</p>
+                </div>
+            </div>
+
+            <!-- Center: Placeholder -->
+            <div class="footer-center">
+                <!-- Blank for now -->
+            </div>
+
+            <!-- Right: GitHub -->
+            <div class="footer-right">
+                <a href="https://github.com/Cann-E/Delta-V2/tree/NAM2" target="_blank">
+                    <img src="{% static 'admin/img/github_logo.png' %}" alt="GitHub" class="github-logo">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grey Sub-Footer -->
+    <div class="footer-grey">
+        ©2025 University of Houston. All rights reserved.
+    </div>
+</footer>
