@@ -156,6 +156,24 @@
                     <p>Submit a new form or request for approval.</p>
                     <a href="{% url 'create_request' 'change_major' %}">Create</a>
                 </div>
+                
+                <!-- Submit RCL Form -->
+                <div class="card">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Submit RCL Form</h3>
+                    <p>Reduced Course Load form submission.</p>
+                    <a href="{% url 'submit_rcl' %}">Start RCL</a>
+                </div>
+
+                <!-- Submit Term Withdrawal -->
+                <div class="card">
+                    <i class="fas fa-file-export"></i>
+                    <h3>Submit Term Withdrawal</h3>
+                    <p>Withdraw from the current term.</p>
+                    <a href="{% url 'submit_tw' %}">Start Withdrawal</a>
+                </div>
+
+  
 
                 <div class="card">
                     <i class="fas fa-folder-open"></i>

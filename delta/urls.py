@@ -8,6 +8,7 @@ from .views import change_request_status, CustomLoginView
 from delta.views import microsoft_login, microsoft_callback, microsoft_logout
 from .views import general_petition_view
 from .views import petition_success
+from .views import rcl_form_view, tw_form_view
 
 
 urlpatterns = [
@@ -40,7 +41,15 @@ urlpatterns = [
     path('notifications/unread-count/', unread_count, name='unread_count'),
     path('notifications/delete/', views.delete_notifications, name='delete_notifications'),
     path('petition/', general_petition_view, name='general_petition'),#FOR INTEGRATION
-    path('petition/success/', petition_success, name='petition_success'),
+    path('petition/success/', petition_success, name='petition_success'),#FOR INTEGRATION
+    path('rcl/', rcl_form_view, name='rcl_form'),#FOR INTEGRATION
+    path('tw/', tw_form_view, name='tw_form'),#FOR INTEGRATION
+    path('rcl/success/', views.success_page_view, name='rcl_success'),#FOR INTEGRATION
+    path('tw/success/', views.success_page_view, name='tw_success'),#FOR INTEGRATION
+    path("submit/rcl/", views.submit_rcl, name="submit_rcl"),
+    path("submit/tw/", views.submit_tw, name="submit_tw"),
+
+
 
 
 

@@ -177,3 +177,115 @@ class GeneralPetition(models.Model):#FOR INTEGRATION
     date_submitted = models.DateField(auto_now_add=True)
 
 
+
+
+# Reduced Course Load Form
+class RCLResponses(models.Model):  # FOR INTEGRATION
+    user_name = models.CharField(max_length=100, null=True, blank=True)
+
+    request_type = models.CharField(max_length=100, blank=True, null=True)
+
+    student_name = models.CharField(max_length=100, blank=True, null=True)
+    ps_id = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    student_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    initial_adjustment_issues = models.BooleanField(default=False)
+    initial_adjustment_explanation = models.TextField(blank=True, null=True)
+
+    improper_course_level_placement = models.BooleanField(default=False)
+    iclp_class1 = models.CharField(max_length=50, blank=True, null=True)
+    iclp_professor1 = models.CharField(max_length=100, blank=True, null=True)
+    iclp_professor_signature1 = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    iclp_date1 = models.DateTimeField(blank=True, null=True)
+
+    iclp_class2 = models.CharField(max_length=50, blank=True, null=True)
+    iclp_professor2 = models.CharField(max_length=100, blank=True, null=True)
+    iclp_professor_signature2 = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    iclp_date2 = models.DateTimeField(blank=True, null=True)
+
+    medical_reason = models.BooleanField(default=False)
+    medical_letter_attached = models.BooleanField(default=False)
+
+    final_semester = models.BooleanField(default=False)
+    final_semester_hours_needed = models.IntegerField(blank=True, null=True)
+
+    concurrent_enrollment = models.BooleanField(default=False)
+    concurrent_university_name = models.CharField(max_length=100, blank=True, null=True)
+    concurrent_hours_uh = models.IntegerField(blank=True, null=True)
+    concurrent_hours_other = models.IntegerField(blank=True, null=True)
+
+    semester_fall = models.BooleanField(default=False)
+    semester_spring = models.BooleanField(default=False)
+    year_last_digit = models.IntegerField(blank=True, null=True)
+    drop_courses = models.CharField(max_length=255, blank=True, null=True)
+    remaining_hours_uh = models.IntegerField(blank=True, null=True)
+
+    advisor_name = models.CharField(max_length=100, blank=True, null=True)
+    advisor_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    advisor_date = models.DateTimeField(blank=True, null=True)
+
+    isss_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    isss_date = models.DateTimeField(blank=True, null=True)
+
+    is_finalized = models.BooleanField(default=False)
+    last_updated = models.DateTimeField(auto_now=True)
+
+# RCL Supporting Documents
+class RCLDocuments(models.Model):
+    response_id = models.IntegerField(null=True, blank=True)
+
+    file_name = models.CharField(max_length=255, blank=True, null=True)
+    file_path = models.FileField(upload_to='rcl_documents/', blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.file_name}"
+
+# Term Withdrawal Form
+class TWResponses(models.Model):  # FOR INTEGRATION
+    user_name = models.CharField(max_length=100, null=True, blank=True)
+
+    request_type = models.CharField(max_length=100, blank=True, null=True)
+
+    student_name = models.CharField(max_length=100, blank=True, null=True)
+    ps_id = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    program = models.CharField(max_length=100, blank=True, null=True)
+    academic_career = models.CharField(max_length=100, blank=True, null=True)
+    student_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
+    submission_date = models.DateTimeField(auto_now_add=True)
+
+    withdrawal_term_fall = models.BooleanField(default=False)
+    withdrawal_term_spring = models.BooleanField(default=False)
+    withdrawal_term_summer = models.BooleanField(default=False)
+    withdrawal_year = models.IntegerField(blank=True, null=True)
+
+    financial_aid_ack = models.BooleanField(default=False)
+    international_students_ack = models.BooleanField(default=False)
+    student_athlete_ack = models.BooleanField(default=False)
+    veterans_ack = models.BooleanField(default=False)
+    graduate_students_ack = models.BooleanField(default=False)
+    doctoral_students_ack = models.BooleanField(default=False)
+    housing_ack = models.BooleanField(default=False)
+    dining_ack = models.BooleanField(default=False)
+    parking_ack = models.BooleanField(default=False)
+
+    supporting_documents_attached = models.BooleanField(default=False)
+    supporting_document_path = models.FileField(upload_to='tw_documents/', blank=True, null=True)
+
+    is_finalized = models.BooleanField(default=False)
+    last_updated = models.DateTimeField(auto_now=True)
+
+# TW Supporting Documents
+class TWDocuments(models.Model):
+    response_id = models.IntegerField(null=True, blank=True)
+
+    file_name = models.CharField(max_length=255, blank=True, null=True)
+    file_path = models.FileField(upload_to='tw_documents/', blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.file_name}"

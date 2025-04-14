@@ -5,6 +5,7 @@ from allauth.account.forms import LoginForm
 from django.contrib.auth import authenticate
 from django.forms import ValidationError
 from .models import GeneralPetition
+from .models import RCLResponses, TWResponses
 
 class ChangeMajorForm(forms.ModelForm):
     class Meta:
@@ -48,3 +49,14 @@ class GeneralPetitionForm(forms.ModelForm):#FOR INTEGRATION
     class Meta:
         model = GeneralPetition
         exclude = ['date_submitted']  
+
+
+class RCLForm(forms.ModelForm):#FOR INTEGRATION
+    class Meta:
+        model = RCLResponses
+        exclude = ['submission_date', 'is_finalized', 'last_updated']
+
+class TWForm(forms.ModelForm):#FOR INTEGRATION
+    class Meta:
+        model = TWResponses
+        exclude = ['submission_date', 'is_finalized', 'last_updated']
