@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.backends import ModelBackend
 from .forms import GeneralPetitionForm
 from .models import GeneralPetition
+from .forms import RCLForm, TWForm
 
 from allauth.account.views import LoginView
 
@@ -415,3 +416,43 @@ def petition_success(request):
     return render(request, 'petition_success.html')  
 
 
+def rcl_form_view(request):#FOR INTEGRATION
+    if request.method == 'POST':
+        form = RCLForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('rcl_success')
+    else:
+        form = RCLForm()
+    return render(request, 'rcl_form.html', {'form': form})
+
+def tw_form_view(request):#FOR INTEGRATION
+    if request.method == 'POST':
+        form = TWForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('tw_success')
+    else:
+        form = TWForm()
+    return render(request, 'tw_form.html', {'form': form})
+
+def submit_rcl(request):
+    if request.method == 'POST':
+        form = RCLForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('rcl_success')
+    else:
+        form = RCLForm()
+    return render(request, "submit_rcl.html", {"form": form})
+
+
+def submit_tw(request):
+    if request.method == 'POST':
+        form = TWForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('tw_success')
+    else:
+        form = TWForm()
+    return render(request, "submit_tw.html", {"form": form})

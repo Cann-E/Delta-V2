@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/tw_form.css' %}">
+
+<h1 class="form-title">Submit Term Withdrawal (TW) Form</h1>
+<form method="post" enctype="multipart/form-data" class="form-container">
+    {% csrf_token %}
+    <div class="form-grid">
+        {% for field in form %}
+            <div class="form-field">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="submit-section">
+        <button type="submit" class="submit-button">Submit TW Form</button>
+    </div>
+</form>
+
+{% endblock %}
