@@ -60,7 +60,15 @@ class Request(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='requests')
-    request_type = models.CharField(max_length=20)
+    request_type = models.CharField(
+    max_length=20,
+    choices=[
+        ('change_major', 'Change Major'),
+        ('change_address', 'Change Address'),
+        ('general_petition', 'General Petition'),  
+    ]
+)
+
 
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
@@ -107,7 +115,7 @@ def notify_admins_on_new_signup(sender, instance, created, **kwargs):
                 message=f"🆕 New user registered: {instance.username} ({instance.email})"
             )
 
-class GeneralPetition(models.Model):#FOR INTEGRATION
+class GeneralPetition(models.Model):  # FOR INTEGRATION
     # Student Information Section
     student_last_name = models.CharField(max_length=100)
     student_first_name = models.CharField(max_length=100)
@@ -122,7 +130,7 @@ class GeneralPetition(models.Model):#FOR INTEGRATION
     student_zip_code = models.CharField(max_length=10)
     student_email = models.EmailField()
 
-    # Petition Purposes
+    # Petition Purpose Details
     program_status_action = models.CharField(max_length=100, blank=True, null=True)
     admission_status_from = models.CharField(max_length=100, blank=True, null=True)
     admission_status_to = models.CharField(max_length=100, blank=True, null=True)
@@ -142,24 +150,22 @@ class GeneralPetition(models.Model):#FOR INTEGRATION
     degree_objective_change_from = models.CharField(max_length=100, blank=True, null=True)
     degree_objective_change_to = models.CharField(max_length=100, blank=True, null=True)
 
-    requirement_term_year = models.CharField(max_length=4, blank=True, null=True)
     requirement_term_catalog = models.CharField(max_length=100, blank=True, null=True)
     requirement_term_career = models.CharField(max_length=100, blank=True, null=True)
     requirement_term_program_plan = models.CharField(max_length=100, blank=True, null=True)
 
     additional_plan_degree_type = models.CharField(max_length=50, blank=True, null=True)
-    is_new_plan_primary_or_secondary = models.CharField(max_length=50, blank=True, null=True)
-    other_current_plans_or_minors = models.TextField(blank=True, null=True)
+    additional_plan_degree_type_other = models.CharField(max_length=100, blank=True, null=True)
+    primary_plan = models.BooleanField(default=False)
+    secondary_plan = models.BooleanField(default=False)
 
     second_degree_type = models.CharField(max_length=100, blank=True, null=True)
 
     minor_change_from = models.CharField(max_length=100, blank=True, null=True)
     minor_change_to = models.CharField(max_length=100, blank=True, null=True)
-
     additional_minor = models.CharField(max_length=100, blank=True, null=True)
 
     degree_requirement_exception_details = models.TextField(blank=True, null=True)
-
     special_problems_course_list = models.TextField(blank=True, null=True)
 
     course_overload_gpa = models.CharField(max_length=10, blank=True, null=True)
@@ -171,13 +177,31 @@ class GeneralPetition(models.Model):#FOR INTEGRATION
     other_request_details = models.TextField(blank=True, null=True)
 
     explanation_of_request = models.TextField(blank=True, null=True)
+    explanation = models.TextField(blank=True, null=True)
+
     student_signature = models.ImageField(upload_to='signatures/', blank=True, null=True)
     signature_date = models.DateField(blank=True, null=True)
 
+    # Checkbox Fields for Q1–Q17
+    Q1 = models.BooleanField(default=False)
+    Q2 = models.BooleanField(default=False)
+    Q3 = models.BooleanField(default=False)
+    Q4 = models.BooleanField(default=False)
+    Q5 = models.BooleanField(default=False)
+    Q6 = models.BooleanField(default=False)
+    Q7 = models.BooleanField(default=False)
+    Q8 = models.BooleanField(default=False)
+    Q9 = models.BooleanField(default=False)
+    Q10 = models.BooleanField(default=False)
+    Q11 = models.BooleanField(default=False)
+    Q12 = models.BooleanField(default=False)
+    Q13 = models.BooleanField(default=False)
+    Q14 = models.BooleanField(default=False)
+    Q15 = models.BooleanField(default=False)
+    Q16 = models.BooleanField(default=False)
+    Q17 = models.BooleanField(default=False)
+
     date_submitted = models.DateField(auto_now_add=True)
-
-
-
 
 # Reduced Course Load Form
 class RCLResponses(models.Model):  # FOR INTEGRATION

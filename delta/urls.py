@@ -41,13 +41,21 @@ urlpatterns = [
     path('notifications/unread-count/', unread_count, name='unread_count'),
     path('notifications/delete/', views.delete_notifications, name='delete_notifications'),
     path('petition/', general_petition_view, name='general_petition'),#FOR INTEGRATION
-    path('petition/success/', petition_success, name='petition_success'),#FOR INTEGRATION
+    path('petition/success/', petition_success, name='petition_success'),#FOR INTEGRATION#FOR INTEGRATION
     path('rcl/', rcl_form_view, name='rcl_form'),#FOR INTEGRATION
     path('tw/', tw_form_view, name='tw_form'),#FOR INTEGRATION
     path('rcl/success/', views.success_page_view, name='rcl_success'),#FOR INTEGRATION
     path('tw/success/', views.success_page_view, name='tw_success'),#FOR INTEGRATION
-    path("submit/rcl/", views.submit_rcl, name="submit_rcl"),
-    path("submit/tw/", views.submit_tw, name="submit_tw"),
+    path("submit/rcl/", views.submit_rcl, name="submit_rcl"),#FOR INTEGRATION
+    path("submit/tw/", views.submit_tw, name="submit_tw"),#FOR INTEGRATION
+    path('tw/download/<int:response_id>/', views.download_tw_pdf, name='download_tw_pdf'),#FOR INTEGRATION
+    path('request/preview/<int:request_id>/', views.preview_request_pdf, name='preview_request_pdf'),
+    path('request/download/<int:request_id>/', views.download_request_pdf, name='download_request_pdf'),
+    path('request/preview/<int:request_id>/', views.preview_request_pdf, name='preview_request_pdf'),
+
+    path('tw/preview/<int:pk>/', views.preview_tw_pdf, name='preview_tw_pdf')#FOR INTEGRATION
+
+
 
 
 

@@ -29,6 +29,7 @@ def generate_pdf_for_request(request):
         signature_path = os.path.abspath(os.path.join(settings.MEDIA_ROOT, 'signatures', 'default_signature.png'))
 
 
+
     # 🔹 Debugging Info
     print(f"🔍 Using LaTeX Template: {TEX_FILE_PATH}")
     print(f"📂 Output Directory: {output_dir}")
@@ -126,3 +127,62 @@ def generate_pdf_for_request(request):
     print(f"✅ PDF successfully saved at: {output_pdf_path}")
 
     return output_pdf_path
+
+
+import os
+import fitz  # PyMuPDF
+from django.conf import settings
+
+def generate_tw_pdf(response):#FOR INTEGRATION
+    # Open the blank form
+    file_path = os.path.join(settings.BASE_DIR, "static/blank_form/TW/TW.pdf")
+    doc = fitz.open(file_path)
+    page = doc.load_page(0)
+
+    # Styling
+    font = "helv"
+    size = 11
+    color = (0, 0, 0)
+
+    # Extract initials from student name
+    initials = ""
+    if response.student_name:
+        parts = response.student_name.split()
+        initials = parts[0][0] + parts[-1][0] if len(parts) >= 2 else ""
+
+    # Define field locations
+    student_map = {
+        "ps_id": (480, 130),
+        "phone": (100, 150),
+        "email": (300, 150),
+        "program": (120, 167),
+        "academic_career": (460, 167),
+        "withdrawal_term_fall": (203, 187),
+        "withdrawal_term_spring": (253, 187),
+        "withdrawal_term_summer": (308, 187),
+        "withdrawal_year": (115, 187),
+        "financial_aid_ack": (50, 265),
+        "international_students_ack": (50, 300),
+        "student_athlete_ack": (50, 350),
+        "veterans_ack": (50, 405),
+        "graduate_students_ack": (50, 440),
+        "doctoral_students_ack": (50, 465),
+        "housing_ack": (50, 500),
+        "dining_ack": (50, 545),
+        "parking_ack": (50, 590),
+    }
+
+    # Fill values
+    for field, pos in student_map.items():
+        val = getattr(response, field, None)
+        text = ""
+        if isinstance(val, bool):
+            text = initials if val else ""
+        elif val:#FOR INTEGRATION
+            text = str(val)
+        page.insert_text(pos, text, fontname=font, fontsize=size, color=color)
+
+    # Save final PDF
+    output_path = os.path.join(settings.MEDIA_ROOT, f"tw_{response.id}.pdf")
+    doc.save(output_path)
+    return output_path

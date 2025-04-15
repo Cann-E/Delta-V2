@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{% static 'css/tw_form.css' %}">
 
 <h1 class="form-title">Submit Term Withdrawal (TW) Form</h1>
+
 <form method="post" enctype="multipart/form-data" class="form-container">
     {% csrf_token %}
     <div class="form-grid">
@@ -22,5 +23,12 @@
         <button type="submit" class="submit-button">Submit TW Form</button>
     </div>
 </form>
+
+{% if response %}
+    <br><br>
+    <form action="{% url 'preview_tw_pdf' response.id %}" method="GET" target="_blank">
+        <button type="submit" class="submit-button">Preview TW PDF</button>
+    </form>
+{% endif %}
 
 {% endblock %}

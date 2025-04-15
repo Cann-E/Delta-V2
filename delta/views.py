@@ -13,6 +13,7 @@ from django.contrib.auth.backends import ModelBackend
 from .forms import GeneralPetitionForm
 from .models import GeneralPetition
 from .forms import RCLForm, TWForm
+from .models import Request
 
 from allauth.account.views import LoginView
 
@@ -399,15 +400,27 @@ def unread_count(request):
 
 
 @login_required
-def general_petition_view(request): #FOR INTEGRATION
+def general_petition_view(request):  # FOR INTEGRATION
     if request.method == 'POST':
         form = GeneralPetitionForm(request.POST, request.FILES)
         if form.is_valid():
             petition = form.save()
-            return redirect('petition_success')  
+
+            # ✅ Also create a linked Request record for tracking
+            Request.objects.create(
+                user=request.user,
+                request_type='general_petition',  # make sure this matches your choices
+                first_name=petition.student_first_name,
+                last_name=petition.student_last_name,
+                explanation=petition.explanation,  # if exists in GeneralPetition
+                status='pending',
+            )
+
+            return redirect('petition_success')
     else:
         form = GeneralPetitionForm()
     return render(request, 'general_petition.html', {'form': form})
+
 
 
 from django.shortcuts import render
@@ -426,17 +439,20 @@ def rcl_form_view(request):#FOR INTEGRATION
         form = RCLForm()
     return render(request, 'rcl_form.html', {'form': form})
 
-def tw_form_view(request):#FOR INTEGRATION
+from .pdf_utils import generate_tw_pdf
+
+def tw_form_view(request):
     if request.method == 'POST':
         form = TWForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('tw_success')
+            response = form.save()
+            generate_tw_pdf(response)
+            return render(request, 'tw_form.html', {'form': form, 'response': response})  # Pass response
     else:
         form = TWForm()
-    return render(request, 'tw_form.html', {'form': form})
+    return render(request, 'tw_form.html', {'form': form, 'response': None})  # Safe fallback
 
-def submit_rcl(request):
+def submit_rcl(request):#FOR INTEGRATION
     if request.method == 'POST':
         form = RCLForm(request.POST, request.FILES)
         if form.is_valid():
@@ -447,7 +463,7 @@ def submit_rcl(request):
     return render(request, "submit_rcl.html", {"form": form})
 
 
-def submit_tw(request):
+def submit_tw(request):#FOR INTEGRATION
     if request.method == 'POST':
         form = TWForm(request.POST, request.FILES)
         if form.is_valid():
@@ -456,3 +472,49 @@ def submit_tw(request):
     else:
         form = TWForm()
     return render(request, "submit_tw.html", {"form": form})
+
+from .pdf_utils import generate_tw_pdf
+from django.http import FileResponse
+
+@login_required
+def preview_tw_pdf(request, pk):#FOR INTEGRATION
+    response = get_object_or_404(TWResponses, pk=pk)
+    generate_tw_pdf(response)
+    pdf_path = os.path.join(settings.MEDIA_ROOT, f"tw_{response.id}.pdf")
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf')
+
+from django.http import FileResponse
+
+@login_required
+def download_tw_pdf(request, response_id):
+    from .models import TWResponses
+    response = get_object_or_404(TWResponses, id=response_id)
+    pdf_path = os.path.join(settings.MEDIA_ROOT, f"tw_{response.id}.pdf")
+
+    if not os.path.exists(pdf_path):
+        from .pdf_utils import generate_tw_pdf
+        generate_tw_pdf(response)
+
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"TermWithdrawal_{response.id}.pdf")
+
+@login_required
+def preview_request_pdf(request, request_id):
+    req = get_object_or_404(Request, id=request_id, user=request.user)
+    pdf_path = generate_pdf_for_request(req)
+
+    if not pdf_path or not os.path.exists(pdf_path):
+        return HttpResponse("PDF could not be generated.", status=500)
+
+    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf')
+
+
+@login_required
+def download_request_pdf(request, request_id):
+    req = get_object_or_404(Request, id=request_id, user=request.user)
+    pdf_path = generate_pdf_for_request(req)
+
+    if not pdf_path or not os.path.exists(pdf_path):
+        return HttpResponse("PDF could not be generated.", status=500)
+
+    filename = f"{req.request_type}_{req.id}.pdf"
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=filename)

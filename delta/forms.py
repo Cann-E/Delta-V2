@@ -29,7 +29,7 @@ class RequestStatusForm(forms.ModelForm):
         model = Request
         fields = ['status']
     
-class MyLoginForm(LoginForm):
+class MyLoginForm(LoginForm):#FOR INTEGRATION
     def clean(self):
         cleaned_data = super().clean()
         login = cleaned_data.get("login")
