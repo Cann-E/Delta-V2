@@ -163,6 +163,31 @@
             </div>
 
             <div class="card">
+                <img src="https://img.icons8.com/ios/50/document--v1.png" alt="Petition">
+                <h3>Submit General Petition</h3>
+                <p>General petition to change Major form online.</p>
+                <a href="{% url 'general_petition' %}">Start Petition</a>
+            </div>
+
+             <!-- Submit RCL Form -->
+             <div class="card">
+                <i class="fas fa-file-alt"></i>
+                <h3>Submit RCL Form</h3>
+                <p>Reduced Course Load form submission.</p>
+                <a href="{% url 'submit_rcl' %}">Start RCL</a>
+            </div>
+
+            <!-- Submit Term Withdrawal -->
+            <div class="card">
+                <i class="fas fa-file-export"></i>
+                <h3>Submit Term Withdrawal</h3>
+                <p>Withdraw from the current term.</p>
+                <a href="{% url 'submit_tw' %}">Start Withdrawal</a>
+            </div>
+
+            
+
+            <div class="card">
                 <img src="https://img.icons8.com/ios/50/logout-rounded.png" alt="Logout">
                 <h3>Logout</h3>
                 <p>Sign out of your account securely.</p>

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+    body {
+        background-image: url("{% static 'images/meteora.jpg' %}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+    }
+</style>
+
+<link rel="stylesheet" href="{% static 'css/form_style.css' %}">
+
+<h1 class="form-title">Submit Term Withdrawal (TW) Form</h1>
+
+<form class="form-container" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+        {% for field in form %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="submit-section">
+        <button type="submit" class="submit-button">Submit</button>
+    </div>
+</form>
+
+{% endblock %}

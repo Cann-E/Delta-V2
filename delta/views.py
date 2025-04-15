@@ -10,6 +10,9 @@ from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.http import require_POST
 from django.contrib.auth.backends import ModelBackend
+from .forms import GeneralPetitionForm
+from .models import GeneralPetition
+from .forms import RCLForm, TWForm
 
 from allauth.account.views import LoginView
 
@@ -50,9 +53,11 @@ def user_list_view(request):
 @login_required
 def home_view(request):
     print("Home view hit. is_active =", request.user.is_active)
+
     if not request.user.is_active:
-        return redirect('inactive_page.html')# Prevents the redirect loop
-    if request.user.role == 'admin':
+        return redirect('inactive_page.html')
+
+    if request.user.role == 'admin' or request.user.is_superuser:
         template = 'home.html'
     else:
         template = 'basic_dashboard.html'
@@ -389,3 +394,64 @@ def unread_count_view(request):
 def unread_count(request):
     count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     return JsonResponse({'unread_count': count})
+
+
+
+@login_required
+def general_petition_view(request): #FOR INTEGRATION
+    if request.method == 'POST':
+        form = GeneralPetitionForm(request.POST, request.FILES)
+        if form.is_valid():
+            petition = form.save()
+            return redirect('petition_success')  
+    else:
+        form = GeneralPetitionForm()
+    return render(request, 'general_petition.html', {'form': form})
+
+
+from django.shortcuts import render
+
+def petition_success(request):
+    return render(request, 'petition_success.html')  
+
+
+def rcl_form_view(request):#FOR INTEGRATION
+    if request.method == 'POST':
+        form = RCLForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('rcl_success')
+    else:
+        form = RCLForm()
+    return render(request, 'rcl_form.html', {'form': form})
+
+def tw_form_view(request):#FOR INTEGRATION
+    if request.method == 'POST':
+        form = TWForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('tw_success')
+    else:
+        form = TWForm()
+    return render(request, 'tw_form.html', {'form': form})
+
+def submit_rcl(request):
+    if request.method == 'POST':
+        form = RCLForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('rcl_success')
+    else:
+        form = RCLForm()
+    return render(request, "submit_rcl.html", {"form": form})
+
+
+def submit_tw(request):
+    if request.method == 'POST':
+        form = TWForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('tw_success')
+    else:
+        form = TWForm()
+    return render(request, "submit_tw.html", {"form": form})
