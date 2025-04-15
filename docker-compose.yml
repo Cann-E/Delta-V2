@@ -28,7 +28,7 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - .:/app                    # ← This is good for live reloading
+      - .:/app
 
 volumes:
   postgres_data:
