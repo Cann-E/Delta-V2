@@ -47,17 +47,26 @@ def user_list_view(request):
 # loads dashboard depending on user type
 @login_required
 def home_view(request):
-    print("Home view hit. is_active =", request.user.is_active)
-
     if not request.user.is_active:
         return redirect('inactive_page.html')
+    
+    print("Home view hit. is_active =", request.user.is_active)
+    
+    delegation_msg = None
+    active_delegations = Delegation.objects.filter(
+        delegate=request.user,
+        start_date__lte=date.today(),
+        end_date__gte=date.today()
+    )
+    if active_delegations.exists():
+        delegators = [d.delegator.username for d in active_delegations]
+        delegation_msg = delegators
 
-    if request.user.role == 'admin' or request.user.is_superuser:
-        template = 'home.html'
-    else:
-        template = 'basic_dashboard.html'
-
-    return render(request, template, {'user': request.user})
+    template = 'home.html' if request.user.is_staff else 'basic_dashboard.html'
+    return render(request, template, {
+        'user': request.user,
+        'delegation_msg': delegation_msg
+    })
 
 # create request based on request type
 @login_required
@@ -104,24 +113,24 @@ def pending_requests_view(request):
     if not request.user.is_staff:
         return redirect('home')
 
-    today = date.today()
-
-    # Org-level approvers can see all pending
     if request.user.is_org_approver:
-        all_requests = Request.objects.filter(status='pending')
+        # Approvers at the org level can see everything
+        pending_reqs = Request.objects.filter(status='pending')
     else:
-        # Unit-level approver: only see their unit's requests + delegated ones
-        my_unit_reqs = Request.objects.filter(status='pending', unit=request.user.unit)
+        # Get units the approver is responsible for (their unit and any delegations)
+        user_units = [request.user.unit] if request.user.unit else []
+        delegated_to_me = Delegation.objects.filter(
+            delegate=request.user,
+            start_date__lte=date.today(),
+            end_date__gte=date.today()
+        ).values_list('delegator__unit', flat=True)
+        pending_reqs = Request.objects.filter(
+            status='pending',
+            unit__in=user_units + list(delegated_to_me)
+        )
 
-        delegations = Delegation.objects.filter(delegate=request.user, start_date__lte=today, end_date__gte=today)
-        delegated_units = [d.delegator.unit for d in delegations if d.delegator.unit]
-        delegated_reqs = Request.objects.filter(status='pending', unit__in=delegated_units)
+    return render(request, 'pending_requests.html', {'pending_requests': pending_reqs})
 
-        all_requests = my_unit_reqs | delegated_reqs
-
-    return render(request, 'pending_requests.html', {
-        'pending_requests': all_requests.distinct()
-    })
 
 # submit request using POST
 def submit_request(request):
@@ -151,19 +160,28 @@ def submit_request(request):
 @login_required
 def approve_request_view(request, request_id):
     req = get_object_or_404(Request, id=request_id, status='pending')
+
+    if not can_user_approve_request(request.user, req):
+        messages.error(request, "Invalid request. You are not authorized to approve this request.")
+        return redirect('pending_requests')
+
     req.status = 'approved'
     req.save()
     pdf_path = generate_pdf_for_request(req)
     notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
-    print(f"✅ PDF generated at: {pdf_path}")
+    print(f"PDF generated at: {pdf_path}")
     return redirect('pending_requests')
+
 
 # return request to user (change status)
 @login_required
 def return_request_view(request, request_id):
-    if not request.user.is_staff:
-        return redirect('home')
     req = get_object_or_404(Request, id=request_id, status='pending')
+
+    if not can_user_approve_request(request.user, req):
+        messages.error(request, "Invalid request. You are not authorized to return this request.")
+        return redirect('pending_requests')
+
     req.status = 'returned'
     req.save()
     notify_user(req.user, f"🔁 Your {req.request_type} request was returned by {request.user.username}.")
@@ -471,3 +489,17 @@ def submit_tw(request):
     else:
         form = TWForm()
     return render(request, "submit_tw.html", {"form": form})
+
+def can_user_approve_request(user, req):
+    if user.is_superuser or user.is_org_approver:
+        return True
+    if user.unit == req.unit:
+        return True
+    if Delegation.objects.filter(
+        delegate=user,
+        delegator__unit=req.unit,
+        start_date__lte=date.today(),
+        end_date__gte=date.today()
+    ).exists():
+        return True
+    return False

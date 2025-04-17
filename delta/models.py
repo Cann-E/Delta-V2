@@ -31,8 +31,12 @@ class CustomUser(AbstractUser):
 
     ROLE_CHOICES = (
         ('basicuser', 'Basic User'),
-        ('admin', 'Administrator'),
+        ('unitapprover', 'Unit Approver'),# new: Approves only requests from their unit
+        ('admin', 'Administrator'), # got from is_org_approver, Approves across units
+        ('clerk', 'Clerk'),#new: Data entry, can create but not approve requests
+        ('auditor', 'Auditor'),#new: Read-only access to track progress or for compliance reporting
     )
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='basicuser')
     is_org_approver = models.BooleanField(default=False) #new
     status = models.BooleanField(default=True)
@@ -52,6 +56,31 @@ class CustomUser(AbstractUser):
         return self.is_admin() or self == request.user
     #NAM3
     unit = models.ForeignKey('Unit', null=True, blank=True, on_delete=models.SET_NULL)
+
+    def is_unit_approver(self):
+        return self.role == 'unitapprover'
+
+    def is_clerk(self):
+        return self.role == 'clerk'
+
+    def is_auditor(self):
+        return self.role == 'auditor'
+
+    def can_approve(self, req=None):
+        if self.is_superuser or self.is_org_approver or self.role == 'admin':
+            return True
+        if self.role == 'unitapprover' and req:
+            return self.unit == req.unit
+        return False
+
+    def can_submit_requests(self):
+        return self.role in ['basicuser', 'clerk']
+
+    CustomUser.is_unit_approver = is_unit_approver
+    CustomUser.is_clerk = is_clerk
+    CustomUser.is_auditor = is_auditor
+    CustomUser.can_approve = can_approve
+    CustomUser.can_submit_requests = can_submit_requests
     
 
 
