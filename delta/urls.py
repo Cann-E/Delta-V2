@@ -48,12 +48,6 @@ urlpatterns = [
     path('tw/success/', views.success_page_view, name='tw_success'),#FOR INTEGRATION
     path("submit/rcl/", views.submit_rcl, name="submit_rcl"),
     path("submit/tw/", views.submit_tw, name="submit_tw"),
-
-
-
-
-
-
 ]
 
 

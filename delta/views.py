@@ -10,19 +10,14 @@ from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.http import require_POST
 from django.contrib.auth.backends import ModelBackend
-from .forms import GeneralPetitionForm
-from .models import GeneralPetition
-from .forms import RCLForm, TWForm
 
 from allauth.account.views import LoginView
 
-from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm
-from .models import Request
+from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm, GeneralPetitionForm, RCLForm, TWForm
+from .models import Request, Delegation, Notification, GeneralPetition
 from .pdf_utils import generate_pdf_for_request
 from datetime import date
-from .forms import RequestStatusForm
 from delta.models import CustomUser
-from .models import Notification
 from delta.notifications import notify_admins, notify_user
 
 import msal
@@ -78,6 +73,7 @@ def create_request_view(request, request_type):
             new_request.last_name = request.user.last_name
             new_request.request_type = request_type
             new_request.status = 'draft'
+            new_request.unit = request.user.unit
             new_request.save()
             return redirect('request_detail', request_id=new_request.id)
     else:
@@ -97,6 +93,7 @@ def submit_request_view(request, request_id):
     req = get_object_or_404(Request, id=request_id, user=request.user)
     if req.status == 'draft':
         req.status = 'pending'
+        req.unit = request.user.unit
         req.save()
     notify_admins(f"📄 {request.user.username} submitted a {req.request_type} request.")
     return redirect('request_detail', request_id=req.id)
@@ -106,8 +103,25 @@ def submit_request_view(request, request_id):
 def pending_requests_view(request):
     if not request.user.is_staff:
         return redirect('home')
-    pending_reqs = Request.objects.filter(status='pending')
-    return render(request, 'pending_requests.html', {'pending_requests': pending_reqs})
+
+    today = date.today()
+
+    # Org-level approvers can see all pending
+    if request.user.is_org_approver:
+        all_requests = Request.objects.filter(status='pending')
+    else:
+        # Unit-level approver: only see their unit's requests + delegated ones
+        my_unit_reqs = Request.objects.filter(status='pending', unit=request.user.unit)
+
+        delegations = Delegation.objects.filter(delegate=request.user, start_date__lte=today, end_date__gte=today)
+        delegated_units = [d.delegator.unit for d in delegations if d.delegator.unit]
+        delegated_reqs = Request.objects.filter(status='pending', unit__in=delegated_units)
+
+        all_requests = my_unit_reqs | delegated_reqs
+
+    return render(request, 'pending_requests.html', {
+        'pending_requests': all_requests.distinct()
+    })
 
 # submit request using POST
 def submit_request(request):
@@ -123,6 +137,7 @@ def submit_request(request):
             old_address=request.POST.get("old_address", ""),
             new_address=request.POST.get("new_address", ""),
             status="pending",
+            unit=request.user.unit
         )
         
         notify_admins(
@@ -176,6 +191,7 @@ def create_request_view(request, request_type):
             new_request.current_major = request.POST.get("current_major", "Unknown")
             new_request.status = 'draft'
             new_request.date_created = request.POST.get("date_created", date.today())
+            new_request.unit = request.user.unit
             new_request.save()
             return redirect('request_detail', request_id=new_request.id)
     else:

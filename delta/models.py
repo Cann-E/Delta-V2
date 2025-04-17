@@ -34,6 +34,7 @@ class CustomUser(AbstractUser):
         ('admin', 'Administrator'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='basicuser')
+    is_org_approver = models.BooleanField(default=False) #new
     status = models.BooleanField(default=True)
     uh_id = models.CharField(max_length=10, blank=True, null=True)
 
@@ -49,6 +50,9 @@ class CustomUser(AbstractUser):
 
     def can_change_request_status(self, request):
         return self.is_admin() or self == request.user
+    #NAM3
+    unit = models.ForeignKey('Unit', null=True, blank=True, on_delete=models.SET_NULL)
+    
 
 
 class Request(models.Model):
@@ -86,6 +90,10 @@ class Request(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.request_type} ({self.status})"
+    
+    #New
+    unit = models.ForeignKey('Unit', null=True, blank=True, on_delete=models.SET_NULL)
+    
 #NAM2    
 class Notification(models.Model):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -289,3 +297,21 @@ class TWDocuments(models.Model):
 
     def __str__(self):
         return f"{self.file_name}"
+
+#NAM3 Define the organization as a hierarchy of units
+class Unit(models.Model):
+    name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='sub_units', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+#NAM3 Allow approvers to delegate approval responsibilities
+class Delegation(models.Model):
+    delegator = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='delegated_by')
+    delegate = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='delegate_for')
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    def __str__(self):
+        return f"{self.delegator} → {self.delegate} ({self.start_date} to {self.end_date})"
