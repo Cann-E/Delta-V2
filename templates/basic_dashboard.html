@@ -141,6 +141,16 @@
             <h1>Welcome to Delta</h1>
             <p>This is a secure user dashboard with authentication and approval tracking.</p>
             <p>You are logged in as <strong>{{ user.username }}</strong></p>
+            
+            {% if pending_count > 0 %}
+                <p style="color: #007c89; font-weight: 500;">
+                    You have {{ pending_count }} pending request{{ pending_count|pluralize }} to review.
+                </p>
+            {% endif %}
+
+            {% if delegation_msg %}
+                <p style="color: #d32f2f; font-weight: 500;">{{ delegation_msg }}</p>
+            {% endif %}
 
             <div class="grid">
                 <div class="card">

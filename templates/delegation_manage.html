@@ -1,0 +1,47 @@
+<!-- delegation_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Delegation Management</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Delegator</th>
+                <th>Delegate</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for delegation in delegations %}
+            <tr>
+                <td>{{ delegation.delegator.username }}</td>
+                <td>{{ delegation.delegate.username }}</td>
+                <td>{{ delegation.start_date }}</td>
+                <td>{{ delegation.end_date }}</td>
+                <td>
+                    <form method="post" action="{% url 'delete_delegation' delegation.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No delegations found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h3>Add New Delegation</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Delegation</button>
+    </form>
+</div>
+{% endblock %}

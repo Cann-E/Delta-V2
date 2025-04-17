@@ -5,7 +5,7 @@ from allauth.account.forms import LoginForm
 from django.contrib.auth import authenticate
 from django.forms import ValidationError
 from .models import GeneralPetition
-from .models import RCLResponses, TWResponses
+from .models import RCLResponses, TWResponses, Delegation
 
 class ChangeMajorForm(forms.ModelForm):
     class Meta:
@@ -60,3 +60,12 @@ class TWForm(forms.ModelForm):#FOR INTEGRATION
     class Meta:
         model = TWResponses
         exclude = ['submission_date', 'is_finalized', 'last_updated']
+        
+class DelegationForm(forms.ModelForm):
+    class Meta:
+        model = Delegation
+        fields = ['delegator', 'delegate', 'start_date', 'end_date']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+        }

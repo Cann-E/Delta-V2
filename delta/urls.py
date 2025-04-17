@@ -5,7 +5,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import change_request_status, CustomLoginView
-from delta.views import microsoft_login, microsoft_callback, microsoft_logout
+from delta.views import microsoft_login, microsoft_callback, microsoft_logout, manage_delegations_view
 from .views import general_petition_view
 from .views import petition_success
 from .views import rcl_form_view, tw_form_view
@@ -48,6 +48,7 @@ urlpatterns = [
     path('tw/success/', views.success_page_view, name='tw_success'),#FOR INTEGRATION
     path("submit/rcl/", views.submit_rcl, name="submit_rcl"),
     path("submit/tw/", views.submit_tw, name="submit_tw"),
+    path("delegations/", manage_delegations_view, name="manage_delegations"),
 ]
 
 

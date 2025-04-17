@@ -76,11 +76,11 @@ class CustomUser(AbstractUser):
     def can_submit_requests(self):
         return self.role in ['basicuser', 'clerk']
 
-    CustomUser.is_unit_approver = is_unit_approver
-    CustomUser.is_clerk = is_clerk
-    CustomUser.is_auditor = is_auditor
-    CustomUser.can_approve = can_approve
-    CustomUser.can_submit_requests = can_submit_requests
+    # CustomUser.is_unit_approver = is_unit_approver
+    # CustomUser.is_clerk = is_clerk
+    # CustomUser.is_auditor = is_auditor
+    # CustomUser.can_approve = can_approve
+    # CustomUser.can_submit_requests = can_submit_requests
     
 
 

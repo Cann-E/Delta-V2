@@ -110,6 +110,16 @@
         <div class="content-header">
             <h1>Welcome to Delta V2</h1>
             <p>You are logged in as: <strong>{{ user.username }}</strong></p>
+            
+            {% if pending_count > 0 %}
+                <p style="color: #007c89; font-weight: 500;">
+                    You have {{ pending_count }} pending request{{ pending_count|pluralize }} to review.
+                </p>
+            {% endif %}
+
+            {% if delegation_msg %}
+                <p style="color: #d32f2f; font-weight: 500;">{{ delegation_msg }}</p>
+            {% endif %}
         </div>
 
         <div class="grid">
@@ -185,14 +195,20 @@
                 <a href="{% url 'submit_tw' %}">Start Withdrawal</a>
             </div>
 
-            
-
             <div class="card">
                 <img src="https://img.icons8.com/ios/50/logout-rounded.png" alt="Logout">
                 <h3>Logout</h3>
                 <p>Sign out of your account securely.</p>
                 <a href="{% url 'microsoft-logout' %}">Logout</a>
             </div>
+
+            <div class="card">
+                <i class="fas fa-users-cog"></i>
+                <h3>Manage Delegations</h3>
+                <p>Assign or update delegate approvers.</p>
+                <a href="{% url 'manage_delegations' %}">Open</a>
+            </div>
+            
         </div>
     {% else %}
         <div class="content-header">

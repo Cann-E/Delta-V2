@@ -13,7 +13,7 @@ from django.contrib.auth.backends import ModelBackend
 
 from allauth.account.views import LoginView
 
-from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm, GeneralPetitionForm, RCLForm, TWForm
+from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm, GeneralPetitionForm, RCLForm, TWForm, DelegationForm  
 from .models import Request, Delegation, Notification, GeneralPetition
 from .pdf_utils import generate_pdf_for_request
 from datetime import date
@@ -49,10 +49,11 @@ def user_list_view(request):
 def home_view(request):
     if not request.user.is_active:
         return redirect('inactive_page.html')
-    
-    print("Home view hit. is_active =", request.user.is_active)
-    
+
     delegation_msg = None
+    pending_count = 0
+
+    # Delegation display
     active_delegations = Delegation.objects.filter(
         delegate=request.user,
         start_date__lte=date.today(),
@@ -60,14 +61,30 @@ def home_view(request):
     )
     if active_delegations.exists():
         delegators = [d.delegator.username for d in active_delegations]
-        delegation_msg = delegators
+        delegation_msg = f"You are currently delegated by: {', '.join(delegators)}"
+
+    # Pending requests count (approvable)
+    if request.user.is_org_approver:
+        pending_count = Request.objects.filter(status='pending').count()
+    elif request.user.unit:
+        delegated_units = Delegation.objects.filter(
+            delegate=request.user,
+            start_date__lte=date.today(),
+            end_date__gte=date.today()
+        ).values_list('delegator__unit', flat=True)
+
+        pending_count = Request.objects.filter(
+            status='pending',
+            unit__in=[request.user.unit.id] + list(delegated_units)
+        ).count()
 
     template = 'home.html' if request.user.is_staff else 'basic_dashboard.html'
     return render(request, template, {
         'user': request.user,
-        'delegation_msg': delegation_msg
+        'delegation_msg': delegation_msg,
+        'pending_count': pending_count
     })
-
+    
 # create request based on request type
 @login_required
 def create_request_view(request, request_type):
@@ -503,3 +520,23 @@ def can_user_approve_request(user, req):
     ).exists():
         return True
     return False
+
+@login_required
+def manage_delegations_view(request):
+    from delta.models import Delegation
+    from datetime import date
+
+    all_delegations = Delegation.objects.filter(end_date__gte=date.today())
+    form = DelegationForm()
+
+    if request.method == "POST":
+        form = DelegationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "✅ Delegation added.")
+            return redirect("manage_delegations")
+
+    return render(request, "delegation_manage.html", {
+        "delegations": all_delegations,
+        "form": form,
+    })
