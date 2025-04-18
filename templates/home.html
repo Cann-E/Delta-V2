@@ -138,6 +138,13 @@
             </div>
 
             <div class="card">
+                <img src="https://img.icons8.com/ios/50/administrative-tools.png" alt="Manage Approvers">
+                <h3>Manage Approvers</h3>
+                <p>Assign, edit, or remove approvers.</p>
+                <a href="{% url 'manage_approvers' %}">Open</a>
+            </div>            
+
+            <div class="card">
                 <img src="https://img.icons8.com/ios/50/pen.png" alt="Signature">
                 <h3>Upload Signature</h3>
                 <p>Add or update your digital signature.</p>
@@ -196,19 +203,19 @@
             </div>
 
             <div class="card">
+                <img src="https://img.icons8.com/ios/50/settings--v1.png" alt="Workflow">
+                <h3>Manage Delegations</h3>
+                <p>Assign or update delegate approvers.</p>
+                <a href="{% url 'manage_delegations' %}">Open</a>
+            </div>
+            
+            <div class="card">
                 <img src="https://img.icons8.com/ios/50/logout-rounded.png" alt="Logout">
                 <h3>Logout</h3>
                 <p>Sign out of your account securely.</p>
                 <a href="{% url 'microsoft-logout' %}">Logout</a>
             </div>
 
-            <div class="card">
-                <i class="fas fa-users-cog"></i>
-                <h3>Manage Delegations</h3>
-                <p>Assign or update delegate approvers.</p>
-                <a href="{% url 'manage_delegations' %}">Open</a>
-            </div>
-            
         </div>
     {% else %}
         <div class="content-header">

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model, authenticate, logout
@@ -13,8 +14,8 @@ from django.contrib.auth.backends import ModelBackend
 
 from allauth.account.views import LoginView
 
-from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm, GeneralPetitionForm, RCLForm, TWForm, DelegationForm  
-from .models import Request, Delegation, Notification, GeneralPetition
+from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm, GeneralPetitionForm, RCLForm, TWForm, DelegationForm, ApproverForm  
+from .models import Request, Delegation, Notification, GeneralPetition, CustomUser
 from .pdf_utils import generate_pdf_for_request
 from datetime import date
 from delta.models import CustomUser
@@ -124,29 +125,29 @@ def submit_request_view(request, request_id):
     notify_admins(f"📄 {request.user.username} submitted a {req.request_type} request.")
     return redirect('request_detail', request_id=req.id)
 
-# admin can view all pending requests
+# NEW: Enforced expired delegation
 @login_required
 def pending_requests_view(request):
     if not request.user.is_staff:
         return redirect('home')
 
     if request.user.is_org_approver:
-        # Approvers at the org level can see everything
         pending_reqs = Request.objects.filter(status='pending')
     else:
-        # Get units the approver is responsible for (their unit and any delegations)
         user_units = [request.user.unit] if request.user.unit else []
-        delegated_to_me = Delegation.objects.filter(
+        valid_delegations = Delegation.objects.filter(
             delegate=request.user,
             start_date__lte=date.today(),
             end_date__gte=date.today()
-        ).values_list('delegator__unit', flat=True)
+        )
+        delegated_units = valid_delegations.values_list('delegator__unit', flat=True)
         pending_reqs = Request.objects.filter(
             status='pending',
-            unit__in=user_units + list(delegated_to_me)
+            unit__in=user_units + list(delegated_units)
         )
 
     return render(request, 'pending_requests.html', {'pending_requests': pending_reqs})
+
 
 
 # submit request using POST
@@ -507,32 +508,46 @@ def submit_tw(request):
         form = TWForm()
     return render(request, "submit_tw.html", {"form": form})
 
+# Enforce active delegation helper
+def is_active_delegate(user, unit):
+    today = date.today()
+    return Delegation.objects.filter(
+        delegate=user,
+        delegator__unit=unit,
+        start_date__lte=today,
+        end_date__gte=today
+    ).exists()
+
+# Updated approval logic with expiration
 def can_user_approve_request(user, req):
     if user.is_superuser or user.is_org_approver:
         return True
     if user.unit == req.unit:
         return True
-    if Delegation.objects.filter(
-        delegate=user,
-        delegator__unit=req.unit,
-        start_date__lte=date.today(),
-        end_date__gte=date.today()
-    ).exists():
+    if is_active_delegate(user, req.unit):
         return True
     return False
 
 @login_required
 def manage_delegations_view(request):
-    from delta.models import Delegation
-    from datetime import date
-
-    all_delegations = Delegation.objects.filter(end_date__gte=date.today())
+    all_delegations = Delegation.objects.all()
     form = DelegationForm()
 
     if request.method == "POST":
         form = DelegationForm(request.POST)
         if form.is_valid():
-            form.save()
+            delegation = form.save()
+            # Notify the delegate
+            notify_user(
+                delegation.delegate,
+                f"You have been delegated approval authority by {delegation.delegator.username} from {delegation.start_date} to {delegation.end_date}."
+            )
+
+            # Notify all admins
+            notify_admins(
+                f"Delegation created: {delegation.delegator.username} → {delegation.delegate.username} ({delegation.start_date} to {delegation.end_date})"
+            )
+
             messages.success(request, "✅ Delegation added.")
             return redirect("manage_delegations")
 
@@ -540,3 +555,89 @@ def manage_delegations_view(request):
         "delegations": all_delegations,
         "form": form,
     })
+    
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_admin())
+def delete_delegation_view(request, delegation_id):
+    delegation = get_object_or_404(Delegation, id=delegation_id)
+    if request.method == "POST":
+        delegation.delete()
+        messages.success(request, "🗑️ Delegation removed.")
+    return redirect("manage_delegations")
+    
+@login_required
+@user_passes_test(is_admin)
+def manage_approvers_view(request):
+    approvers = get_user_model().objects.filter(
+        is_active=True
+    ).filter(
+        Q(role='unitapprover') | Q(is_org_approver=True)
+    )
+    return render(request, 'manage_approvers.html', {'approvers': approvers})
+
+
+@login_required
+@user_passes_test(is_admin)
+def add_approver_view(request):
+    if request.method == 'POST':
+        form = ApproverForm(request.POST)
+        if form.is_valid():
+            user = form.cleaned_data['user']
+            role = form.cleaned_data['role']
+            unit = form.cleaned_data['unit']
+            is_org = role == 'admin' or form.cleaned_data['is_org_approver']
+
+            user.role = role
+            user.unit = unit
+            user.is_staff = True
+            user.is_org_approver = is_org
+            user.save()
+            messages.success(request, f"Approver {user.username} added.")
+            return redirect('manage_approvers')
+    else:
+        form = ApproverForm()
+    return render(request, 'approver_form.html', {'form': form})
+
+
+User = get_user_model()
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_admin())
+def edit_approver_view(request, approver_id):
+    approver = get_object_or_404(User, id=approver_id)
+    if request.method == 'POST':
+        form = ApproverForm(request.POST, instance=approver)
+        if form.is_valid():
+            updated_user = form.save(commit=False)
+            updated_user.is_org_approver = (updated_user.role == 'admin')
+            updated_user.save()
+            return redirect('manage_approvers')
+    else:
+        form = ApproverForm(instance=approver)
+
+    return render(request, 'edit_approver.html', {
+        'form': form,
+        'approver': approver
+    })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_admin())
+def remove_approver_view(request, approver_id):
+    user = get_object_or_404(User, id=approver_id)
+    if user.is_superuser:
+        messages.error(request, "Cannot remove superuser access.")
+        return redirect('manage_approvers')
+
+    # Reset role, permissions
+    user.role = 'basicuser'
+    user.is_org_approver = False
+    user.unit = None
+    user.is_staff = False
+    user.save()
+
+    messages.success(request, f"✅ {user.username} is no longer an approver.")
+    return redirect('manage_approvers')
+
+
+

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view, toggle_user_status,inactive_page,inactive, toggle_read_status, unread_count_view, unread_count
+from .views import home_view, upload_signature_view, user_list_view, delete_user_view,submit_request,user_requests_view,success_page_view, toggle_user_status,inactive_page,inactive, toggle_read_status, unread_count_view, unread_count, add_approver_view, edit_approver_view, remove_approver_view
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -49,6 +49,12 @@ urlpatterns = [
     path("submit/rcl/", views.submit_rcl, name="submit_rcl"),
     path("submit/tw/", views.submit_tw, name="submit_tw"),
     path("delegations/", manage_delegations_view, name="manage_delegations"),
+    path('delegations/delete/<int:delegation_id>/', views.delete_delegation_view, name='delete_delegation'),
+    path('approvers/', views.manage_approvers_view, name='manage_approvers'),
+    path('approvers/manage/', views.manage_approvers_view, name='manage_approvers'),
+    path('approvers/add/', add_approver_view, name='add_approver'),
+    path('approvers/edit/<int:approver_id>/', edit_approver_view, name='edit_approver'),
+    path('approvers/remove/<int:approver_id>/', remove_approver_view, name='remove_approver'),
 ]
 
 

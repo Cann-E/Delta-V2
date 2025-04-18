@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Delegations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Approvers</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         body {
@@ -20,7 +21,7 @@
             color: #1a237e;
         }
 
-        .delegation-table {
+        .approver-table {
             width: 100%;
             border-collapse: collapse;
             background-color: white;
@@ -29,75 +30,49 @@
             overflow: hidden;
         }
 
-        .delegation-table th, .delegation-table td {
+        .approver-table th, .approver-table td {
             padding: 14px 20px;
             border-bottom: 1px solid #eee;
             text-align: left;
         }
 
-        .delegation-table th {
+        .approver-table th {
             background-color: #f4f6fb;
             font-weight: 600;
             color: #555;
         }
 
-        .delegation-table tr:hover {
+        .approver-table tr:hover {
             background-color: #f0f4ff;
         }
 
-        .btn-danger {
+        .btn-danger, .btn-edit {
             background-color: transparent;
             border: none;
             font-weight: 500;
-            color: #d93025;
             cursor: pointer;
         }
 
-        .btn-danger:hover {
+        .btn-danger {
+            color: #d93025;
+        }
+
+        .btn-danger:hover, .btn-edit:hover {
             text-decoration: underline;
         }
 
-        .add-form {
-            margin-top: 40px;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        .btn-edit {
+            color: #1a73e8;
         }
 
-        .add-form label {
-            display: block;
-            margin-top: 10px;
-            font-weight: 500;
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        .add-form input,
-        .add-form select {
-            padding: 8px;
-            width: 100%;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        .submit-btn {
-            margin-top: 20px;
-            background-color: #1a73e8;
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .submit-btn:hover {
-            background-color: #155cc4;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 40px;
+        .add-btn {
             background-color: #1a73e8;
             color: white;
             text-decoration: none;
@@ -106,57 +81,75 @@
             font-weight: 500;
         }
 
-        .back-btn:hover {
+        .add-btn:hover {
             background-color: #155cc4;
         }
 
+        .back-btn {
+            background-color: #1a73e8;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 40px;
+        }
+        
+        .back-btn:hover {
+            background-color: #155cc4;
+        }
+        
+        .bottom-bar {
+            margin-top: 30px;
+        }
+        
     </style>
 </head>
 <body>
+    <div class="top-bar">
+        <h1>Manage Approvers</h1>
+        <a class="add-btn" href="{% url 'add_approver' %}"><i class="fas fa-user-plus"></i> Add Approver</a>
+    </div>
 
-    <h1>Manage Delegations</h1>
-
-    <table class="delegation-table">
+    <table class="approver-table">
         <thead>
             <tr>
-                <th>Delegator</th>
-                <th>Delegate</th>
-                <th>Start Date</th>
-                <th>End Date</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Unit</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for delegation in delegations %}
+        {% for user in approvers %}
             <tr>
-                <td>{{ delegation.delegator.username }}</td>
-                <td>{{ delegation.delegate.username }}</td>
-                <td>{{ delegation.start_date }}</td>
-                <td>{{ delegation.end_date }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{% if user.is_org_approver %}Org Approver{% else %}Unit Approver{% endif %}</td>
+                <td>{{ user.unit.name }}</td>
+                <td>{% if user.is_active %}Active{% else %}<span class="deactivated">Deactivated</span>{% endif %}</td>
                 <td>
-                    <form method="post" action="{% url 'delete_delegation' delegation.id %}">
+                    <a href="{% url 'edit_approver' user.id %}" class="btn-edit">Edit</a>
+                    <form method="post" action="{% url 'toggle_user_status' user.id %}" style="display:inline">
                         {% csrf_token %}
                         <button type="submit" class="btn-danger">Remove</button>
                     </form>
                 </td>
             </tr>
-            {% empty %}
-            <tr><td colspan="5">No delegations found.</td></tr>
-            {% endfor %}
+        {% empty %}
+            <tr><td colspan="6">No approvers found.</td></tr>
+        {% endfor %}
         </tbody>
     </table>
 
-    <div class="add-form">
-        <h2>Add New Delegation</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="submit-btn"><i class="fas fa-plus"></i> Add Delegation</button>
-        </form>
+        </table>
+
+    <div class="bottom-bar">
+        <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
     </div>
-
-    <a href="{% url 'home' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Home</a>
-
 </body>
 </html>
 {% endblock %}

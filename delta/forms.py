@@ -1,6 +1,6 @@
 from django import forms
 from .models import Request
-from .models import CustomUser
+from .models import CustomUser, Unit
 from allauth.account.forms import LoginForm
 from django.contrib.auth import authenticate
 from django.forms import ValidationError
@@ -69,3 +69,50 @@ class DelegationForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
         }
+    def clean(self):
+        cleaned = super().clean()
+        delegator = cleaned.get('delegator')
+        delegate = cleaned.get('delegate')
+
+        if delegator and delegate:
+            # ✅ Allow if same unit OR if delegator is admin/org-level approver
+            if (delegator.unit == delegate.unit) or delegator.is_superuser or delegator.is_org_approver:
+                return cleaned
+            else:
+                raise forms.ValidationError("Delegation must be within the same unit unless the delegator is an org-level approver.")
+        
+        return cleaned
+
+
+class ApproverForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=CustomUser.objects.filter(is_active=True), label="User")
+    role = forms.ChoiceField(choices=[
+        ('unitapprover', 'Unit Approver'),
+        ('admin', 'Org Approver (Admin)'),
+    ], label="Role")
+    unit = forms.ModelChoiceField(queryset=Unit.objects.all(), label="Unit")
+    is_org_approver = forms.BooleanField(required=False, label="Organization-wide Approver")
+
+    class Meta:
+        model = CustomUser
+        fields = ['user', 'role', 'unit', 'is_org_approver']
+
+class ApproverEditForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['role', 'unit']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['unit'].queryset = Unit.objects.all()
+        self.fields['unit'].required = False
+
+        if self.instance and self.instance.role == 'admin':
+            self.fields['unit'].disabled = True
+            self.fields['unit'].empty_label = 'All (Admin)'
+
+    def clean(self):
+        cleaned = super().clean()
+        role = cleaned.get('role')
+        cleaned['is_org_approver'] = (role == 'admin')
+        return cleaned
