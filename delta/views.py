@@ -1,34 +1,37 @@
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import get_user_model, authenticate, logout
-from django.http import HttpResponse
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.http import require_POST
-from django.contrib.auth.backends import ModelBackend
-from .forms import GeneralPetitionForm
-from .models import GeneralPetition
-from .forms import RCLForm, TWForm
-from .models import Request
+from rest_framework_simplejwt.tokens import RefreshToken
+from delta.models import Request, GeneralPetition, TWResponses, RCLResponses
+from delta.pdf_utils import generate_pdf_for_request, generate_general_petition_pdf, generate_tw_pdf  # Add others as needed
+from django.http import FileResponse, Http404
+from delta.models import Request
+from django.core.files import File
 
 from allauth.account.views import LoginView
-
-from .forms import ChangeMajorForm, ChangeAddressForm, SignatureUploadForm
-from .models import Request
-from .pdf_utils import generate_pdf_for_request
+from .pdf_utils import generate_rcl_pdf
 from datetime import date
-from .forms import RequestStatusForm
-from delta.models import CustomUser
-from .models import Notification
-from delta.notifications import notify_admins, notify_user
-
+import os
 import msal
 import requests
 import urllib.parse
+
+# Local imports
+from .models import (
+    Request, GeneralPetition, Notification, CustomUser, TWResponses
+)
+from .forms import (
+    ChangeMajorForm, ChangeAddressForm, SignatureUploadForm, RequestStatusForm,
+    GeneralPetitionForm, RCLForm, TWForm
+)
+from .pdf_utils import generate_pdf_for_request
+
+from delta.notifications import notify_admins, notify_user
 
 # check if user is admin
 def is_admin(user):
@@ -134,18 +137,74 @@ def submit_request(request):
         return redirect("success_page")
     return render(request, "create_request.html")
 
-# approve pending request and make PDF
+from django.contrib import messages
+import os
+from django.conf import settings
+
 @login_required
 def approve_request_view(request, request_id):
-    req = get_object_or_404(Request, id=request_id, status='pending')
-    req.status = 'approved'
-    req.save()
-    pdf_path = generate_pdf_for_request(req)
-    notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
-    print(f"✅ PDF generated at: {pdf_path}")
+    # 🔹 Try to get a standard Request (e.g., change_major, change_address)
+    try:
+        req = Request.objects.get(id=request_id, status='pending')
+        req.status = 'approved'
+        pdf_path = generate_pdf_for_request(req)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            req.pdf_file.name = relative_path
+        req.save()
+        notify_user(req.user, f"📄 Your {req.request_type} request PDF has been generated.")
+        print(f"✅ PDF generated at: {pdf_path}")
+        return redirect('pending_requests')
+    except Request.DoesNotExist:
+        pass
+
+    # 🔹 Try to get a General Petition
+    try:
+        petition = GeneralPetition.objects.get(id=request_id)
+        petition.is_finalized = True  # Optional: track approval
+        pdf_path = generate_general_petition_pdf(petition)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            req.pdf_file.name = relative_path
+            req.save()
+        notify_user(petition.user, "📄 Your General Petition PDF has been generated.")
+        print(f"✅ General Petition PDF generated at: {pdf_path}")
+        return redirect('pending_requests')
+    except GeneralPetition.DoesNotExist:
+        pass
+
+    # 🔹 Try to get a Term Withdrawal response
+    try:
+        tw = TWResponses.objects.get(id=request_id)
+        pdf_path = generate_tw_pdf(tw)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            tw.pdf_file.name = relative_path
+        tw.save()
+        notify_user(tw.user, "📄 Your Term Withdrawal PDF has been generated.")
+        print(f"✅ TW PDF generated at: {pdf_path}")
+        return redirect('pending_requests')
+    except TWResponses.DoesNotExist:
+        pass
+
+    # 🔹 Try to get an RCL response
+    try:
+        rcl = RCLResponses.objects.get(id=request_id)
+        pdf_path = generate_rcl_pdf(rcl)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            rcl.pdf_file.name = relative_path
+        rcl.save()
+        notify_user(rcl.user, "📄 Your RCL PDF has been generated.")
+        print(f"✅ RCL PDF generated at: {pdf_path}")
+        return redirect('pending_requests')
+    except RCLResponses.DoesNotExist:
+        pass
+
+    # 🔸 If nothing matched
+    messages.error(request, "❌ Request not found or already approved.")
     return redirect('pending_requests')
 
-# return request to user (change status)
 @login_required
 def return_request_view(request, request_id):
     if not request.user.is_staff:
@@ -406,17 +465,24 @@ def general_petition_view(request):  # FOR INTEGRATION
         if form.is_valid():
             petition = form.save()
 
-            # ✅ Also create a linked Request record for tracking
-            Request.objects.create(
-                user=request.user,
-                request_type='general_petition',  # make sure this matches your choices
-                first_name=petition.student_first_name,
-                last_name=petition.student_last_name,
-                explanation=petition.explanation,  # if exists in GeneralPetition
-                status='pending',
-            )
+        try:
+            print("🖼️ Saved signature path:", petition.student_signature.path)
+            print("📂 Expected folder:", os.path.dirname(petition.student_signature.path))
+        except (ValueError, AttributeError):
+            print("⚠️ No student signature was uploaded.")
 
-            return redirect('petition_success')
+        # ✅ Create linked request
+        Request.objects.create(
+            user=request.user,
+            request_type='general_petition',
+            first_name=petition.student_first_name,
+            last_name=petition.student_last_name,
+            explanation=petition.explanation,
+            status='pending',
+        )
+
+        return redirect('petition_success')
+
     else:
         form = GeneralPetitionForm()
     return render(request, 'general_petition.html', {'form': form})
@@ -496,25 +562,47 @@ def download_tw_pdf(request, response_id):
         generate_tw_pdf(response)
 
     return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"TermWithdrawal_{response.id}.pdf")
-
-@login_required
-def preview_request_pdf(request, request_id):
-    req = get_object_or_404(Request, id=request_id, user=request.user)
-    pdf_path = generate_pdf_for_request(req)
-
-    if not pdf_path or not os.path.exists(pdf_path):
-        return HttpResponse("PDF could not be generated.", status=500)
-
-    return FileResponse(open(pdf_path, 'rb'), content_type='application/pdf')
-
-
 @login_required
 def download_request_pdf(request, request_id):
     req = get_object_or_404(Request, id=request_id, user=request.user)
-    pdf_path = generate_pdf_for_request(req)
 
-    if not pdf_path or not os.path.exists(pdf_path):
-        return HttpResponse("PDF could not be generated.", status=500)
+    if not req.pdf_file or not os.path.exists(req.pdf_file.path):
+        pdf_path = generate_pdf_for_request(req)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            req.pdf_file.name = relative_path
+            req.save()
+        else:
+            raise Http404("❌ PDF generation failed.")
 
-    filename = f"{req.request_type}_{req.id}.pdf"
-    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=filename)
+    response = FileResponse(req.pdf_file.open('rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="request_{req.id}.pdf"'
+    return response
+@login_required
+def preview_request_pdf(request, request_id):
+    req = get_object_or_404(Request, id=request_id, user=request.user)
+
+    if not req.pdf_file or not os.path.exists(req.pdf_file.path):
+        print("\u26a0\ufe0f No existing PDF. Generating a new one...")
+        pdf_path = generate_pdf_for_request(req)
+
+        if pdf_path and os.path.exists(pdf_path):
+            req.pdf_file.name = os.path.relpath(pdf_path, settings.MEDIA_ROOT).replace("\\", "/")
+            req.save()
+            print(f"\u2705 PDF saved to field: {req.pdf_file.name}")
+        else:
+            print("\u274c PDF generation failed inside preview_request_pdf")
+            raise Http404("\u274c PDF generation failed.")
+
+    return FileResponse(req.pdf_file.open('rb'), content_type='application/pdf')
+
+
+@login_required
+def preview_general_petition_pdf(request, request_id):
+    from .models import GeneralPetition
+    petition = get_object_or_404(GeneralPetition, id=request_id, user=request.user)
+
+    if not petition.pdf_file or not os.path.exists(petition.pdf_file.path):
+        raise Http404("PDF not found.")
+    
+    return FileResponse(petition.pdf_file.open('rb'), content_type='application/pdf')

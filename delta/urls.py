@@ -50,9 +50,8 @@ urlpatterns = [
     path("submit/tw/", views.submit_tw, name="submit_tw"),#FOR INTEGRATION
     path('tw/download/<int:response_id>/', views.download_tw_pdf, name='download_tw_pdf'),#FOR INTEGRATION
     path('request/preview/<int:request_id>/', views.preview_request_pdf, name='preview_request_pdf'),
+    path('petition/preview/<int:request_id>/', views.preview_general_petition_pdf, name='preview_general_petition_pdf'),
     path('request/download/<int:request_id>/', views.download_request_pdf, name='download_request_pdf'),
-    path('request/preview/<int:request_id>/', views.preview_request_pdf, name='preview_request_pdf'),
-
     path('tw/preview/<int:pk>/', views.preview_tw_pdf, name='preview_tw_pdf')#FOR INTEGRATION
 
 

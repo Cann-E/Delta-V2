@@ -6,7 +6,7 @@ from datetime import date
 from django.dispatch import receiver  # ✅ Import receiver to handle signals
 from django.db.models.signals import post_save  # ✅ Import post_save signal
 from delta.pdf_utils import generate_pdf_for_request  # ✅ Import PDF generation function
-
+import os
 
 class CustomUser(AbstractUser):
     # Override the inherited groups field
@@ -115,7 +115,8 @@ def notify_admins_on_new_signup(sender, instance, created, **kwargs):
                 message=f"🆕 New user registered: {instance.username} ({instance.email})"
             )
 
-class GeneralPetition(models.Model):  # FOR INTEGRATION
+class GeneralPetition(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='general_petitions')
     # Student Information Section
     student_last_name = models.CharField(max_length=100)
     student_first_name = models.CharField(max_length=100)
@@ -202,6 +203,7 @@ class GeneralPetition(models.Model):  # FOR INTEGRATION
     Q17 = models.BooleanField(default=False)
 
     date_submitted = models.DateField(auto_now_add=True)
+    pdf_file = models.FileField(upload_to="generated_pdfs/", null=True, blank=True)
 
 # Reduced Course Load Form
 class RCLResponses(models.Model):  # FOR INTEGRATION
@@ -255,6 +257,7 @@ class RCLResponses(models.Model):  # FOR INTEGRATION
 
     is_finalized = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
+    pdf_file = models.FileField(upload_to='generated_pdfs/', blank=True, null=True)
 
 # RCL Supporting Documents
 class RCLDocuments(models.Model):
@@ -270,6 +273,7 @@ class RCLDocuments(models.Model):
 # Term Withdrawal Form
 class TWResponses(models.Model):  # FOR INTEGRATION
     user_name = models.CharField(max_length=100, null=True, blank=True)
+    pdf_file = models.FileField(upload_to='generated_pdfs/', blank=True, null=True)
 
     request_type = models.CharField(max_length=100, blank=True, null=True)
 
@@ -302,6 +306,8 @@ class TWResponses(models.Model):  # FOR INTEGRATION
 
     is_finalized = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
+def pdf_exists(self):
+    return self.pdf_file and os.path.exists(self.pdf_file.path)
 
 # TW Supporting Documents
 class TWDocuments(models.Model):
