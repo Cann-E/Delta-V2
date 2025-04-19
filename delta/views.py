@@ -562,22 +562,7 @@ def download_tw_pdf(request, response_id):
         generate_tw_pdf(response)
 
     return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"TermWithdrawal_{response.id}.pdf")
-@login_required
-def download_request_pdf(request, request_id):
-    req = get_object_or_404(Request, id=request_id, user=request.user)
 
-    if not req.pdf_file or not os.path.exists(req.pdf_file.path):
-        pdf_path = generate_pdf_for_request(req)
-        if pdf_path:
-            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
-            req.pdf_file.name = relative_path
-            req.save()
-        else:
-            raise Http404("❌ PDF generation failed.")
-
-    response = FileResponse(req.pdf_file.open('rb'), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="request_{req.id}.pdf"'
-    return response
 @login_required
 def preview_request_pdf(request, request_id):
     req = get_object_or_404(Request, id=request_id, user=request.user)
@@ -606,3 +591,74 @@ def preview_general_petition_pdf(request, request_id):
         raise Http404("PDF not found.")
     
     return FileResponse(petition.pdf_file.open('rb'), content_type='application/pdf')
+@login_required
+def preview_pdf(request, obj_type, object_id):
+    if obj_type == "request":
+        obj = get_object_or_404(Request, id=object_id, user=request.user)
+    elif obj_type == "petition":
+        obj = get_object_or_404(GeneralPetition, id=object_id, user=request.user)
+    else:
+        raise Http404("Invalid object type.")
+
+    # PDF generation logic (optional for Request only)
+    if not obj.pdf_file or not os.path.exists(obj.pdf_file.path):
+        if obj_type == "request":
+            from .utils import generate_pdf_for_request
+            pdf_path = generate_pdf_for_request(obj)
+            if pdf_path and os.path.exists(pdf_path):
+                obj.pdf_file.name = os.path.relpath(pdf_path, settings.MEDIA_ROOT).replace("\\", "/")
+                obj.save()
+            else:
+                raise Http404("PDF generation failed.")
+        else:
+            raise Http404("PDF not found.")
+
+    return FileResponse(obj.pdf_file.open('rb'), content_type='application/pdf')
+
+
+
+@login_required
+def download_request_pdf(request, request_id):
+    req = get_object_or_404(Request, id=request_id, user=request.user)
+
+    if not req.pdf_file or not os.path.exists(req.pdf_file.path):
+        pdf_path = generate_pdf_for_request(req)
+        if pdf_path:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            req.pdf_file.name = relative_path
+            req.save()
+        else:
+            raise Http404("❌ PDF generation failed.")
+
+    response = FileResponse(req.pdf_file.open('rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="request_{req.id}.pdf"'
+    return response
+@login_required
+def download_pdf(request, obj_type, object_id):
+    if obj_type == "request":
+        obj = get_object_or_404(Request, id=object_id, user=request.user)
+
+        if not obj.pdf_file or not os.path.exists(obj.pdf_file.path):
+            from .utils import generate_pdf_for_request
+            pdf_path = generate_pdf_for_request(obj)
+            if pdf_path:
+                relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT).replace("\\", "/")
+                obj.pdf_file.name = relative_path
+                obj.save()
+            else:
+                raise Http404("❌ PDF generation failed.")
+        filename = f"request_{obj.id}.pdf"
+
+    elif obj_type == "petition":
+        obj = get_object_or_404(GeneralPetition, id=object_id, user=request.user)
+
+        if not obj.pdf_file or not os.path.exists(obj.pdf_file.path):
+            raise Http404("❌ Petition PDF not found.")
+        filename = f"petition_{obj.id}.pdf"
+
+    else:
+        raise Http404("Invalid object type.")
+
+    response = FileResponse(obj.pdf_file.open('rb'), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
