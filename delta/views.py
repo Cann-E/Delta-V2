@@ -603,7 +603,7 @@ def preview_pdf(request, obj_type, object_id):
     # PDF generation logic (optional for Request only)
     if not obj.pdf_file or not os.path.exists(obj.pdf_file.path):
         if obj_type == "request":
-            from .utils import generate_pdf_for_request
+            from .pdf_utils import generate_pdf_for_request
             pdf_path = generate_pdf_for_request(obj)
             if pdf_path and os.path.exists(pdf_path):
                 obj.pdf_file.name = os.path.relpath(pdf_path, settings.MEDIA_ROOT).replace("\\", "/")
@@ -639,7 +639,7 @@ def download_pdf(request, obj_type, object_id):
         obj = get_object_or_404(Request, id=object_id, user=request.user)
 
         if not obj.pdf_file or not os.path.exists(obj.pdf_file.path):
-            from .utils import generate_pdf_for_request
+            from .pdf_utils import generate_pdf_for_request
             pdf_path = generate_pdf_for_request(obj)
             if pdf_path:
                 relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT).replace("\\", "/")
